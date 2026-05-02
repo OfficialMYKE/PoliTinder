@@ -5,10 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
-// ¡Añadimos Eye y EyeOff a las importaciones!
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
-// Rutas relativas corregidas
+// Rutas relativas
 import { Button } from "./button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./form";
 import { Input } from "./input";
@@ -37,7 +36,7 @@ interface AuthFormSplitScreenProps {
   createAccountHref: string;
 }
 
-// Icono oficial de Microsoft (SVG)
+// Icono oficial de Microsoft
 const MicrosoftIcon = () => (
   <svg
     className="mr-2 h-4 w-4"
@@ -66,7 +65,7 @@ export function AuthFormSplitScreen({
   createAccountHref,
 }: AuthFormSplitScreenProps) {
   const [isLoading, setIsLoading] = React.useState(false);
-  // ¡Aquí está la magia! Un estado para controlar si se ve o no la contraseña
+  // Estado para controlar si se ve o no la contraseña
   const [showPassword, setShowPassword] = React.useState(false);
 
   const form = useForm<FormValues>({
@@ -96,10 +95,10 @@ export function AuthFormSplitScreen({
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col md:flex-row">
+    <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
       {/* Panel Izquierdo */}
-      <div className="flex w-full flex-col items-center justify-center bg-white p-8 md:w-1/2">
-        <div className="w-full max-w-md">
+      <div className="relative flex w-full flex-col items-center justify-center bg-white p-8 md:w-1/2">
+        <div className="w-full max-w-md md:-mt-16">
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -154,14 +153,14 @@ export function AuthFormSplitScreen({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                          <div className="relative group">
+                            <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 transition-colors group-focus-within:text-[#487CFF]" />
                             <Input
                               placeholder="Correo institucional"
                               autoComplete="off"
                               {...field}
                               disabled={isLoading}
-                              className="bg-white pl-12 h-12 rounded-full border-slate-300"
+                              className="bg-white pl-12 h-12 rounded-full border-slate-300 focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] focus-visible:ring-offset-0"
                             />
                           </div>
                         </FormControl>
@@ -171,7 +170,7 @@ export function AuthFormSplitScreen({
                   />
                 </motion.div>
 
-                {/* Input de Contraseña con Ojito */}
+                {/* Input de Contraseña */}
                 <motion.div variants={itemVariants}>
                   <FormField
                     control={form.control}
@@ -179,23 +178,20 @@ export function AuthFormSplitScreen({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                          <div className="relative group">
+                            <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 transition-colors group-focus-within:text-[#487CFF]" />
                             <Input
-                              /* Cambiamos dinámicamente entre text y password */
                               type={showPassword ? "text" : "password"}
                               placeholder="Contraseña"
                               autoComplete="new-password"
                               {...field}
                               disabled={isLoading}
-                              /* Le agregamos pr-12 para que el texto no se monte encima del ojito */
-                              className="bg-white pl-12 pr-12 h-12 rounded-full border-slate-300"
+                              className="bg-white pl-12 pr-12 h-12 rounded-full border-slate-300 focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] focus-visible:ring-offset-0"
                             />
-                            {/* El botón del ojito */}
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                              className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none group-focus-within:text-[#487CFF]"
                             >
                               {showPassword ? (
                                 <EyeOff className="h-5 w-5" />
@@ -228,7 +224,10 @@ export function AuthFormSplitScreen({
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <label className="font-normal cursor-pointer text-sm text-slate-600">
+                          <label
+                            translate="no"
+                            className="font-normal cursor-pointer text-sm text-slate-600"
+                          >
                             Recordarme
                           </label>
                         </div>
@@ -252,7 +251,7 @@ export function AuthFormSplitScreen({
                     {isLoading && (
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     )}
-                    Continuar con correo
+                    Iniciar sesión
                   </Button>
                 </motion.div>
               </form>
@@ -271,6 +270,24 @@ export function AuthFormSplitScreen({
               </a>
             </motion.p>
           </motion.div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 w-full text-center text-xs text-slate-400 md:absolute md:bottom-6 md:mt-0">
+          <p>© 2026 PoliTinder. Todos los derechos reservados.</p>
+          <div className="mt-1 space-x-3">
+            <a href="#" className="hover:text-slate-600 transition-colors">
+              Términos de uso
+            </a>
+            <span>·</span>
+            <a href="#" className="hover:text-slate-600 transition-colors">
+              Privacidad
+            </a>
+            <span>·</span>
+            <a href="#" className="hover:text-slate-600 transition-colors">
+              Soporte
+            </a>
+          </div>
         </div>
       </div>
 
