@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // cconfigurar el atajo
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });

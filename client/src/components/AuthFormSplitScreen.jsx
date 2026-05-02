@@ -4,7 +4,6 @@ import { Mail, Lock } from "lucide-react";
 export function AuthFormSplitScreen({ title, description, imageSrc }) {
   return (
     <div className="flex min-h-screen w-full bg-white text-slate-900">
-      {/* Lado del Formulario (Izquierda) */}
       <div className="flex w-full flex-col justify-center px-8 lg:w-1/2 sm:px-16 md:px-24">
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-8 flex flex-col items-start">
@@ -13,7 +12,6 @@ export function AuthFormSplitScreen({ title, description, imageSrc }) {
           </div>
 
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            {/* Input Correo */}
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">
                 Correo Electrónico
@@ -31,7 +29,6 @@ export function AuthFormSplitScreen({ title, description, imageSrc }) {
               </div>
             </div>
 
-            {/* Input Contraseña */}
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">
                 Contraseña
@@ -49,7 +46,6 @@ export function AuthFormSplitScreen({ title, description, imageSrc }) {
               </div>
             </div>
 
-            {/* Opciones Adicionales */}
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
                 <input
@@ -72,7 +68,6 @@ export function AuthFormSplitScreen({ title, description, imageSrc }) {
               </a>
             </div>
 
-            {/* Botón Submit */}
             <button
               type="submit"
               className="mt-6 w-full rounded-md bg-[#487CFF] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
@@ -93,7 +88,6 @@ export function AuthFormSplitScreen({ title, description, imageSrc }) {
         </div>
       </div>
 
-      {/* Lado de la Imagen (Derecha) */}
       <div className="hidden lg:block lg:w-1/2 relative bg-slate-100 overflow-hidden">
         <img
           src={imageSrc}

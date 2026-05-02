@@ -1,11 +1,7 @@
 import { AuthFormSplitScreen } from "@/components/ui/login";
-import logoImage from "@/assets/logo.png";
-
-// A simple utility to simulate an API call
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Login() {
-  // Define the submission handler
   const handleLogin = async (data: any) => {
     console.log("Form submitted with:", data);
     await sleep(2000);
@@ -16,7 +12,7 @@ export default function Login() {
     <AuthFormSplitScreen
       logo={
         <img
-          src={logoImage}
+          src={"../src/assets/logo.png"}
           alt="PoliTinder Logo"
           className="h-12 w-auto rounded-xl"
         />
