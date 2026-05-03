@@ -13,14 +13,13 @@ export default function Login() {
 
   return (
     <AuthFormSplitScreen
-      logo={null} // Pasamos null porque ya eliminamos el logo del diseño
       title="Iniciar sesión"
       description="¡Bienvenido de nuevo! Por favor, ingresa para continuar."
       imageSrc="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop"
       imageAlt="Estudiantes EPN"
       onSubmit={handleLogin}
       forgotPasswordHref="#"
-      createAccountHref="#"
+      createAccountHref="/register"
     />
   );
 }
