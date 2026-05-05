@@ -107,6 +107,16 @@ export function RegisterFormSplitScreen({
 
   return (
     <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
+      {/* PANEL DERECHO */}
+      <div className="relative hidden w-1/2 md:block">
+        <img
+          src={imageSrc}
+          alt={imageAlt}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+
       {/* PANEL IZQUIERDO */}
       <div className="relative flex h-full w-full flex-col bg-white md:w-1/2">
         {/* CONTENEDOR DEL FORMULARIO */}
@@ -375,16 +385,6 @@ export function RegisterFormSplitScreen({
 
         {/* FOOTER */}
         <AuthFooter />
-      </div>
-
-      {/* PANEL DERECHO */}
-      <div className="relative hidden w-1/2 md:block">
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
     </div>
   );
