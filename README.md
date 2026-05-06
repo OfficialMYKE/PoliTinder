@@ -20,6 +20,12 @@
 PoliTinder es una aplicación web full-stack diseñada para optimizar el networking académico dentro de la Escuela Politécnica Nacional (EPN). La plataforma emplea un algoritmo de emparejamiento basado en afinidad para conectar estudiantes con el propósito de formar grupos de estudio, colaborar en proyectos y ofrecer mentoría entre pares, operando bajo un acceso restringido estrictamente a dominios institucionales (`@epn.edu.ec`).
 El sistema sigue una estricta metodología de Separación de Preocupaciones (SoC) utilizando un modelo cliente-servidor, respaldado por una infraestructura Backend-as-a-Service (Supabase) para la sincronización de datos en tiempo real.
 
+## Diseño UI/UX
+
+El prototipo de alta fidelidad de **PoliTinder** fue desarrollado en Figma. Manteniendo una estetica limpia e intuitiva con el usuario. Puedes revisar el prototipo con las pantallas de login y registro en el link adjunto.
+
+[Ver Proyecto en Figma](https://www.figma.com/design/vV9GeAyl9bsATQKDAfl5iU/Politinder?node-id=0-1&p=f&t=244RtCMEasoOLu0R-0)
+
 ## Instalación
 Para ejecutar este proyecto localmente, necesitas tener instalado [Node.js](https://nodejs.org/) (v18.x o superior) y acceso a una instancia de [Supabase](https://supabase.com/).
 1. **Clonar el repositorio y preparar el cliente:**
