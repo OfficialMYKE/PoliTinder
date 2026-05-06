@@ -33,3 +33,28 @@ Para ejecutar este proyecto localmente, necesitas tener instalado [Node.js](http
    git clone [https://github.com/OfficialMYKE/PoliTinder.git](https://github.com/OfficialMYKE/PoliTinder.git)
    cd politinder-workspace/client
    npm install
+
+## Estructura del Proyecto
+
+El repositorio está organizado en un formato de monorepo, dividiendo claramente el entorno de desarrollo en dos partes principales: el `client` (Frontend) y el `server` (Backend).
+
+```text
+POLITINDER-WORKSPACE/
+├── client/                 # Frontend (React + Vite + Tailwind)
+│   ├── public/             # Archivos estáticos directos al navegador (favicon)
+│   ├── src/                # Código fuente principal de la interfaz
+│   │   ├── assets/         # Recursos visuales (imágenes, fondos, logo.png)
+│   │   ├── components/     # Componentes modulares y reutilizables de React
+│   │   │   ├── ui/         # Componentes base de UI (Botones, Inputs, Footer)
+│   │   │   └── AuthFormSplitScreen.jsx # Layout principal de autenticación
+│   │   ├── lib/            # Funciones utilitarias y helpers (ej. utilidades de Tailwind)
+│   │   ├── pages/          # Vistas principales de enrutamiento (Login, Register)
+│   │   ├── App.jsx         # Componente raíz y gestor de rutas
+│   │   └── main.jsx        # Punto de entrada principal de la aplicación React
+│   ├── components.json     # Configuración de la librería de componentes de UI
+│   ├── package.json        # Dependencias y scripts del Frontend
+│   └── vite.config.js      # Configuración del empaquetador Vite
+│
+└── server/                 # Backend (API, Lógica y Base de Datos)
+    ├── package.json        # Dependencias del servidor
+    └── README.md           # Documentación específica del Backend
