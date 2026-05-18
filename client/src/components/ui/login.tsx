@@ -1,60 +1,37 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { motion } from "framer-motion";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Rutas relativas
 import { Button } from "./button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./form";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
 import { AuthFooter } from "./footer";
+import { MicrosoftIcon } from "../icons/MicrosoftIcon";
+import { useLoginForm } from "../../hooks/useLoginForm";
+import type { LoginFormValues } from "../../schemas/loginSchema";
+import { theme } from "../../config/theme";
 
-const formSchema = z.object({
-  email: z
-    .string()
-    .email({ message: "Por favor, ingresa un correo institucional válido." }),
-  password: z
-    .string()
-    .min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
-  rememberMe: z.boolean().default(false).optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
+/**
+ * Props para el componente de autenticación con pantalla dividida.
+ */
 interface AuthFormSplitScreenProps {
   title: string;
   description: string;
   imageSrc: string;
   imageAlt: string;
-  onSubmit: (data: FormValues) => Promise<void>;
+  onSubmit: (data: LoginFormValues) => Promise<void>;
   forgotPasswordHref: string;
   createAccountHref: string;
 }
 
-const MicrosoftIcon = () => (
-  <svg
-    className="mr-2 h-4 w-4"
-    aria-hidden="true"
-    focusable="false"
-    data-prefix="fab"
-    data-icon="microsoft"
-    role="img"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 448 512"
-  >
-    <path fill="#f25022" d="M0 32h214.7v214.7H0V32z"></path>
-    <path fill="#7fbb00" d="M233.3 32H448v214.7H233.3V32z"></path>
-    <path fill="#00a4ef" d="M0 265.3h214.7V480H0V265.3z"></path>
-    <path fill="#ffb900" d="M233.3 265.3H448V480H233.3V265.3z"></path>
-  </svg>
-);
-
+/**
+ * Componente principal de Login que muestra una imagen a la izquierda y el formulario a la derecha.
+ * Utiliza Framer Motion para animaciones y Tailwind CSS para el diseño.
+ */
 export function AuthFormSplitScreen({
   title,
   description,
@@ -64,38 +41,13 @@ export function AuthFormSplitScreen({
   forgotPasswordHref,
   createAccountHref,
 }: AuthFormSplitScreenProps) {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showPassword, setShowPassword] = React.useState(false);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: "", password: "", rememberMe: false },
-  });
-
-  const handleFormSubmit = async (data: FormValues) => {
-    setIsLoading(true);
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      console.error("Submission failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-  };
+  // Hook personalizado que maneja la lógica del formulario (validación, estados de carga, etc.)
+  const { form, isLoading, showPassword, setShowPassword, handleSubmit } =
+    useLoginForm({ onSubmit });
 
   return (
     <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
-      {/* PANEL IZQUIERDO */}
+      {/* PANEL IZQUIERDO: Imagen decorativa con gradiente (oculto en móviles) */}
       <div className="relative hidden w-1/2 md:block">
         <img
           src={imageSrc}
@@ -105,183 +57,280 @@ export function AuthFormSplitScreen({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
-      {/* PANEL DERECHO */}
-      <div className="relative flex h-full w-full flex-col bg-white md:w-1/2">
-        {/* CONTENEDOR DEL FORMULARIO */}
-        <div className="flex flex-1 flex-col items-center justify-center p-8 pb-28 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="w-full max-w-md">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col gap-6"
-            >
+      {/* PANEL DERECHO: Contenedor del formulario */}
+      <div className="flex flex-1 flex-col items-center justify-center p-8 pb-28 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex flex-col min-h-full w-full p-8 pt-12">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-full max-w-md">
               <motion.div
-                variants={itemVariants}
-                className="flex flex-col items-center justify-center text-center"
+                variants={theme.animation.containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col gap-6"
               >
-                <h1 className="text-4xl font-semibold text-slate-900 tracking-tight mb-2">
-                  {title}
-                </h1>
-                <p className="text-sm text-slate-500">{description}</p>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <Button
-                  variant="outline"
-                  className="w-full font-medium h-12 rounded-full border-slate-200 bg-slate-50 hover:bg-slate-100"
-                  onClick={() => console.log("Microsoft")}
+                {/* Encabezado: Título y descripción */}
+                <motion.div
+                  variants={theme.animation.itemVariants}
+                  className="flex flex-col items-center justify-center text-center"
                 >
-                  <MicrosoftIcon /> Continuar con Microsoft
-                </Button>
-              </motion.div>
+                  <h1 className="text-4xl font-semibold text-slate-900 tracking-tight mb-2">
+                    {title}
+                  </h1>
+                  <p className="text-sm text-slate-500">{description}</p>
+                </motion.div>
 
-              <motion.div variants={itemVariants} className="relative my-0">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-slate-500">
-                    o inicia sesión con correo
-                  </span>
-                </div>
-              </motion.div>
-
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleFormSubmit)}
-                  className="space-y-5"
-                  autoComplete="off"
-                >
-                  <motion.div variants={itemVariants}>
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="relative group">
-                              <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 transition-colors group-focus-within:text-[#487CFF]" />
-                              <Input
-                                placeholder="Correo institucional"
-                                autoComplete="off"
-                                {...field}
-                                disabled={isLoading}
-                                className="bg-white pl-12 h-12 rounded-full border-slate-300 focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] focus-visible:ring-offset-0"
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </motion.div>
-
-                  <motion.div variants={itemVariants}>
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="relative group">
-                              <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 transition-colors group-focus-within:text-[#487CFF]" />
-                              <Input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Contraseña"
-                                autoComplete="new-password"
-                                {...field}
-                                disabled={isLoading}
-                                className="bg-white pl-12 pr-12 h-12 rounded-full border-slate-300 focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] focus-visible:ring-offset-0"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none group-focus-within:text-[#487CFF]"
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-5 w-5" />
-                                ) : (
-                                  <Eye className="h-5 w-5" />
-                                )}
-                              </button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </motion.div>
-
-                  <motion.div
-                    variants={itemVariants}
-                    className="flex items-center justify-between px-1"
+                {/* Botón de Autenticación con Microsoft */}
+                <motion.div variants={theme.animation.itemVariants}>
+                  <Button
+                    variant="outline"
+                    className="w-full font-medium h-12 rounded-full border-slate-200 bg-slate-50 hover:bg-slate-100"
+                    onClick={() => console.log("Microsoft")}
                   >
-                    <FormField
-                      control={form.control}
-                      name="rememberMe"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              disabled={isLoading}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <label
-                              translate="no"
-                              className="font-normal cursor-pointer text-sm text-slate-600"
-                            >
-                              Recordarme
-                            </label>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <Link
-                      to={forgotPasswordHref}
-                      className="text-sm font-normal text-[#487CFF] hover:underline"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </Link>
-                  </motion.div>
+                    <MicrosoftIcon /> Continuar con Microsoft
+                  </Button>
+                </motion.div>
 
-                  <motion.div variants={itemVariants} className="pt-2">
-                    <Button
-                      type="submit"
-                      className="w-full h-12 rounded-full bg-[#487CFF] hover:bg-blue-700 text-white font-medium text-base shadow-sm"
-                      disabled={isLoading}
-                    >
-                      {isLoading && (
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      )}
-                      Iniciar sesión
-                    </Button>
-                  </motion.div>
-                </form>
-              </Form>
-
-              <motion.p
-                variants={itemVariants}
-                className="px-8 text-center text-sm text-slate-600 mt-4"
-              >
-                ¿No tienes una cuenta?{" "}
-                <Link
-                  to={createAccountHref}
-                  className="font-normal text-[#487CFF] hover:underline"
+                {/* Separador visual */}
+                <motion.div
+                  variants={theme.animation.itemVariants}
+                  className="relative my-0"
                 >
-                  Crea una aquí
-                </Link>
-              </motion.p>
-            </motion.div>
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white px-4 text-slate-500">
+                      o inicia sesión con correo
+                    </span>
+                  </div>
+                </motion.div>
+
+                {/* Formulario de React Hook Form */}
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                    className="space-y-5"
+                    autoComplete="off"
+                  >
+                    {/* Campos del formulario extraídos en componentes pequeños (SRP) */}
+                    <EmailField form={form} isLoading={isLoading} />
+                    <PasswordField
+                      form={form}
+                      isLoading={isLoading}
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                    />
+                    <RememberMeField form={form} isLoading={isLoading} />
+                    <SubmitButton isLoading={isLoading} text="Iniciar sesión" />
+
+                    {/* Enlace para creación de cuenta */}
+                    <motion.p
+                      variants={theme.animation.itemVariants}
+                      className="px-8 text-center text-sm text-slate-600 mt-4"
+                    >
+                      ¿No tienes una cuenta?{" "}
+                      <Link
+                        to={createAccountHref}
+                        className="font-normal text-[#487CFF] hover:underline"
+                      >
+                        Crea una aquí
+                      </Link>
+                    </motion.p>
+                  </form>
+                </Form>
+              </motion.div>
+            </div>
+          </div>
+          <div className="w-full mt-31 flex items-center justify-center pb-4">
+            <AuthFooter />
           </div>
         </div>
-
-        {/* FOOTER */}
-        <AuthFooter />
       </div>
     </div>
+  );
+}
+
+/**
+ * Campo de correo electrónico con icono y validación.
+ */
+function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
+  return (
+    <motion.div variants={theme.animation.itemVariants}>
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormControl>
+              <div className="relative group">
+                <Mail
+                  className={`absolute left-4 top-3.5 h-5 w-5 transition-colors ${
+                    fieldState.error
+                      ? "text-red-500"
+                      : "text-slate-400 group-focus-within:text-[#487CFF]"
+                  }`}
+                />
+                <Input
+                  placeholder="Correo institucional"
+                  autoComplete="off"
+                  {...field}
+                  disabled={isLoading}
+                  className={`bg-white pl-12 h-12 rounded-full border focus-visible:ring-1 focus-visible:ring-offset-0 transition-colors ${
+                    fieldState.error
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-slate-300 focus-visible:border-[#487CFF] focus-visible:ring-[#487CFF]"
+                  }`}
+                />
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </motion.div>
+  );
+}
+
+/**
+ * Campo de contraseña con opción de mostrar y ocultar texto.
+ */
+function PasswordField({
+  form,
+  isLoading,
+  showPassword,
+  onTogglePassword,
+}: {
+  form: any;
+  isLoading: boolean;
+  showPassword: boolean;
+  onTogglePassword: () => void;
+}) {
+  return (
+    <motion.div variants={theme.animation.itemVariants}>
+      <FormField
+        control={form.control}
+        name="password"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormControl>
+              <div className="relative group">
+                <Lock
+                  className={`absolute left-4 top-3.5 h-5 w-5 transition-colors ${
+                    fieldState.error
+                      ? "text-red-500"
+                      : "text-slate-400 group-focus-within:text-[#487CFF]"
+                  }`}
+                />
+
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Contraseña"
+                  autoComplete="new-password"
+                  {...field}
+                  disabled={isLoading}
+                  className={`bg-white pl-12 pr-12 h-12 rounded-full border focus-visible:ring-1 focus-visible:ring-offset-0 transition-colors ${
+                    fieldState.error
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-slate-300 focus-visible:border-[#487CFF] focus-visible:ring-[#487CFF]"
+                  }`}
+                />
+
+                <button
+                  type="button"
+                  onClick={onTogglePassword}
+                  className={`absolute right-4 top-3.5 transition-colors focus:outline-none ${
+                    fieldState.error
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-slate-400 hover:text-slate-600 group-focus-within:text-[#487CFF]"
+                  }`}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </motion.div>
+  );
+}
+
+/**
+ * Checkbox para la opción "Recordarme" y enlace de recuperación de contraseña.
+ */
+function RememberMeField({
+  form,
+  isLoading,
+}: {
+  form: any;
+  isLoading: boolean;
+}) {
+  return (
+    <motion.div
+      variants={theme.animation.itemVariants}
+      className="flex items-center justify-between px-1"
+    >
+      <FormField
+        control={form.control}
+        name="rememberMe"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isLoading}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <label
+                translate="no"
+                className="font-normal cursor-pointer text-sm text-slate-600"
+              >
+                Recordarme
+              </label>
+            </div>
+          </FormItem>
+        )}
+      />
+      <Link
+        to="/forgot-password"
+        className="text-sm font-normal text-[#487CFF] hover:underline"
+      >
+        ¿Olvidaste tu contraseña?
+      </Link>
+    </motion.div>
+  );
+}
+
+/**
+ * Botón de envío con estado de carga (spinner).
+ */
+function SubmitButton({
+  isLoading,
+  text,
+}: {
+  isLoading: boolean;
+  text: string;
+}) {
+  return (
+    <motion.div variants={theme.animation.itemVariants} className="pt-2">
+      <Button
+        type="submit"
+        style={{
+          backgroundColor: theme.colors.primary,
+        }}
+        className="w-full h-12 rounded-full text-white font-medium text-base shadow-sm hover:opacity-90 transition-opacity"
+        disabled={isLoading}
+      >
+        {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+        {text}
+      </Button>
+    </motion.div>
   );
 }

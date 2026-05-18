@@ -1,12 +1,16 @@
 import { RegisterFormSplitScreen } from "../components/ui/register";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Register() {
+  const { register } = useAuth();
+
   const handleRegister = async (data: any) => {
-    console.log("Datos de registro:", data);
-    await sleep(2000); // Simulamos carga
-    alert("¡Cuenta creada con éxito! Ahora puedes iniciar sesión.");
+    await register({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+    });
   };
 
   return (

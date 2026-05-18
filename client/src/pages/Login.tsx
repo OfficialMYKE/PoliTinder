@@ -1,14 +1,19 @@
 import { AuthFormSplitScreen } from "../components/ui/login";
+import { useAuth } from "../contexts/AuthContext";
 
-// Función para simular el tiempo de carga
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
+/**
+ * Página de Login.
+ * Actúa como controlador de alto nivel, conectando el UI con el contexto de autenticación global.
+ */
 export default function Login() {
-  // Manejador del formulario
+  const { login } = useAuth(); // Extraemos la función de login del contexto
+
+  /**
+   * Ejecuta la autenticación cuando el formulario se envía correctamente.
+   */
   const handleLogin = async (data: any) => {
-    console.log("Formulario enviado con:", data);
-    await sleep(2000);
-    alert("¡Inicio de sesión exitoso!");
+    // Aquí podrías añadir lógica adicional antes o después del login
+    await login({ email: data.email, password: data.password });
   };
 
   return (
