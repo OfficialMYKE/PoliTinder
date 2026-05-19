@@ -2,7 +2,10 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 import { Info, AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
 
-interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+interface AlertProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   variant?: "brand" | "neutral" | "error" | "success" | "warning";
   icon?: React.ReactNode;
   title?: React.ReactNode;
@@ -14,7 +17,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     { variant = "neutral", icon, title, description, className, ...props },
     ref,
   ) => {
-    // Auto-seleccionamos el icono dependiendo del error/éxito si no nos pasan uno
     const DefaultIcon =
       variant === "error"
         ? AlertCircle

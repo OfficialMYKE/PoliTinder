@@ -7,8 +7,13 @@ import Privacy from "./pages/Privacy";
 import { AuthProvider } from "./contexts/AuthContext";
 import { createStorageServices } from "./services/storage";
 
+// Inicializa los servicios de almacenamiento local (token + usuario)
 const { tokenStorage, userStorage } = createStorageServices();
 
+/**
+ * Componente raíz de la aplicación
+ * Configura el proveedor de autenticación y las rutas principales
+ */
 function App() {
   return (
     <AuthProvider tokenStorage={tokenStorage} userStorage={userStorage}>

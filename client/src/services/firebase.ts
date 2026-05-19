@@ -1,7 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
+/**
+ * Configuración de Firebase obtenida desde variables de entorno
+ * @see client/.env para los valores locales
+ */
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
@@ -15,9 +19,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-if (import.meta.env.DEV) {
-  const analytics = null;
-} else {
+if (!import.meta.env.DEV) {
   getAnalytics(app);
 }
 

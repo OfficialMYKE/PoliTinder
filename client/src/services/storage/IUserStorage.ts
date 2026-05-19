@@ -1,6 +1,6 @@
 /**
- * Interfaz de almacenamiento de usuario - ISP (Principio de Segregación de Interfaces)
- * Interfaz segregada solo para operaciones de usuario
+ * Interfaz de almacenamiento de usuario — ISP (Principio de Segregación de Interfaces)
+ * Interfaz segregada exclusivamente para operaciones con datos de usuario
  */
 
 export interface IUserStorage {

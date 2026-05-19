@@ -1,5 +1,5 @@
 /**
- * Adaptador de almacenamiento - DIP (Principio de Inversión de Dependencias)
+ * Adaptador de almacenamiento — DIP (Principio de Inversión de Dependencias)
  * Abstracción de la que dependen los módulos de alto nivel
  */
 

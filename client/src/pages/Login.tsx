@@ -2,6 +2,10 @@ import { useState } from "react";
 import { AuthFormSplitScreen } from "../components/ui/login";
 import { useAuth } from "../contexts/AuthContext";
 
+/**
+ * Página de inicio de sesión
+ * Gestiona el estado de alertas y delega el renderizado al componente AuthFormSplitScreen
+ */
 export default function Login() {
   const { login, loginWithMicrosoft } = useAuth();
   const [alert, setAlert] = useState<{

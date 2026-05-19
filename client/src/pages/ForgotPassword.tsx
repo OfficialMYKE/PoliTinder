@@ -17,6 +17,10 @@ import { useForgotPasswordForm } from "../hooks/useForgotPasswordForm";
 import { useAuth } from "../contexts/AuthContext";
 import { theme } from "../config/theme";
 
+/**
+ * Página de recuperación de contraseña
+ * Envía un enlace de restablecimiento al correo institucional del usuario
+ */
 export default function ForgotPassword() {
   const { resetPassword } = useAuth();
   const [alert, setAlert] = useState<{
@@ -52,7 +56,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
-      {/* PANEL IZQUIERDO */}
+      {/* Imagen decorativa con gradiente — oculta en dispositivos móviles */}
       <div className="relative hidden w-1/2 md:block">
         <img
           src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop"
@@ -62,7 +66,7 @@ export default function ForgotPassword() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
-      {/* PANEL DERECHO */}
+      {/* Formulario de recuperación con scroll */}
       <div className="flex flex-1 flex-col items-center justify-center p-8 pb-28 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex flex-col min-h-full w-full p-8 pt-12">
           <div className="flex-1 flex items-center justify-center">

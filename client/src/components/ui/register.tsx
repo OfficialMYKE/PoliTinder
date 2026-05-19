@@ -33,6 +33,10 @@ interface RegisterFormSplitScreenProps {
   onMicrosoftClick?: () => void;
 }
 
+/**
+ * Componente de registro con pantalla dividida
+ * Panel izquierdo: imagen decorativa | Panel derecho: formulario de registro
+ */
 export function RegisterFormSplitScreen({
   title,
   description,
@@ -55,7 +59,7 @@ export function RegisterFormSplitScreen({
 
   return (
     <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
-      {/* PANEL DERECHO */}
+      {/* Imagen decorativa con gradiente — oculta en dispositivos móviles */}
       <div className="relative hidden w-1/2 md:block">
         <img
           src={imageSrc}
@@ -65,7 +69,7 @@ export function RegisterFormSplitScreen({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
-      {/* PANEL IZQUIERDO */}
+      {/* Formulario de registro con scroll */}
       <div className="flex flex-1 flex-col items-center justify-center p-8 pb-26 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex flex-col min-h-full w-full p-8 pt-0">
           <div className="flex-1 flex flex-col items-center justify-center">
@@ -110,7 +114,7 @@ export function RegisterFormSplitScreen({
                   </div>
                 </motion.div>
 
-                {/* Alerta del servidor (errores/success) */}
+                {/* Alertas del servidor (error/success) */}
                 {serverAlert && (
                   <motion.div variants={theme.animation.itemVariants}>
                     <Alert
@@ -191,7 +195,9 @@ export function RegisterFormSplitScreen({
   );
 }
 
-// Separate components for each form field - SRP
+/**
+ * Campo de nombre (nombre/apellido) con icono de usuario — SRP
+ */
 function NameField({
   form,
   isLoading,
@@ -238,6 +244,9 @@ function NameField({
   );
 }
 
+/**
+ * Campo de correo electrónico institucional con icono y validación — SRP
+ */
 function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
   return (
     <FormField
@@ -275,6 +284,9 @@ function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
   );
 }
 
+/**
+ * Campo de contraseña con toggle de visibilidad — SRP
+ */
 function PasswordField({
   form,
   isLoading,
@@ -336,6 +348,9 @@ function PasswordField({
   );
 }
 
+/**
+ * Campo de confirmación de contraseña con toggle de visibilidad — SRP
+ */
 function ConfirmPasswordField({
   form,
   isLoading,
@@ -383,6 +398,9 @@ function ConfirmPasswordField({
   );
 }
 
+/**
+ * Checkbox de aceptación de términos y condiciones — SRP
+ */
 function TermsField({ form, isLoading }: { form: any; isLoading: boolean }) {
   return (
     <motion.div variants={theme.animation.itemVariants} className="pt-1">
@@ -435,6 +453,9 @@ function TermsField({ form, isLoading }: { form: any; isLoading: boolean }) {
   );
 }
 
+/**
+ * Botón de envío del formulario con indicador de carga — SRP
+ */
 function SubmitButton({
   isLoading,
   text,

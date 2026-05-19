@@ -1,5 +1,5 @@
 /**
- * Formularios - ISP (Interface Segregation)
+ * Tipos para formularios de autenticación — ISP (Principio de Segregación de Interfaces)
  */
 
 export interface IFormFieldProps {

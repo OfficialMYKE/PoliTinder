@@ -1,5 +1,5 @@
 /**
- * Hook useRegisterForm - SRP (Principio de Responsabilidad Única)
+ * Hook useRegisterForm — SRP (Principio de Responsabilidad Única)
  * Encapsula la lógica del formulario de registro separada del renderizado UI
  */
 
@@ -34,7 +34,7 @@ export function useRegisterForm({ onSubmit }: UseRegisterFormProps) {
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("Error al registrarse:", error);
     } finally {
       setIsLoading(false);
     }

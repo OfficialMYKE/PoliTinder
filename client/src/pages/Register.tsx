@@ -2,6 +2,10 @@ import { useState } from "react";
 import { RegisterFormSplitScreen } from "../components/ui/register";
 import { useAuth } from "../contexts/AuthContext";
 
+/**
+ * Página de registro de nuevos usuarios
+ * Gestiona el estado de alertas y delega el renderizado al componente RegisterFormSplitScreen
+ */
 export default function Register() {
   const { register, loginWithMicrosoft } = useAuth();
   const [alert, setAlert] = useState<{

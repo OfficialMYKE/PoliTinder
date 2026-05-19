@@ -1,5 +1,5 @@
 /**
-  Segregación de interfaces (ISP)
+ * Tipos del sistema de autenticación — ISP (Principio de Segregación de Interfaces)
  */
 
 export interface ILoginCredentials {

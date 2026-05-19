@@ -13,6 +13,10 @@ import { ITokenStorage } from "../services/storage/ITokenStorage";
 import { IUserStorage } from "../services/storage/IUserStorage";
 import { auth } from "../services/firebase";
 
+/**
+ * Interfaces del contexto de autenticación
+ * Define el contrato que expone AuthContext a los componentes consumidores
+ */
 interface AuthContextProps {
   state: IAuthState;
   login: (credentials: { email: string; password: string }) => Promise<void>;
@@ -35,6 +39,10 @@ interface AuthProviderProps {
   userStorage: IUserStorage;
 }
 
+/**
+ * Mapea errores de Firebase a mensajes legibles en español
+ * @param error - Objeto de error devuelto por Firebase Auth
+ */
 function mapFirebaseError(error: any): IAuthError {
   const code = error?.code || "UNKNOWN_ERROR";
   const messages: Record<string, string> = {
@@ -53,6 +61,11 @@ function mapFirebaseError(error: any): IAuthError {
   };
 }
 
+/**
+ * Proveedor de autenticación que envuelve la aplicación
+ * Inicializa el estado desde almacenamiento local y expone
+ * las funciones: login, register, loginWithMicrosoft, resetPassword, logout
+ */
 export function AuthProvider({
   children,
   tokenStorage,
@@ -230,7 +243,7 @@ export function AuthProvider({
     try {
       await signOut(auth);
     } catch {
-      // continúa aunque falle el cierre de sesión remoto
+      // Continúa aunque falle el cierre de sesión remoto
     }
     tokenStorage.removeToken();
     userStorage.removeUser();
@@ -250,6 +263,10 @@ export function AuthProvider({
   );
 }
 
+/**
+ * Hook personalizado para acceder al contexto de autenticación
+ * @throws Error si se usa fuera de un AuthProvider
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

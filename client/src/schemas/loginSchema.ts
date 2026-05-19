@@ -1,10 +1,19 @@
 import * as z from "zod";
 
+/**
+ * Esquema de validación del formulario de inicio de sesión
+ * Valida email, contraseña (mín. 8 caracteres) y la opción "Recordarme"
+ */
+
 export const loginSchema = z.object({
-  // Validación de correo: debe ser un email válido y no estar vacío
+  // Validación de correo: debe ser un email válido, no vacío y del dominio EPN
   email: z
     .string()
-    .email({ message: "Por favor, ingresa un correo institucional válido." }),
+    .email({ message: "Por favor, ingresa un correo válido." })
+    .endsWith("@epn.edu.ec", {
+      message:
+        "Debes iniciar sesión con tu correo institucional (@epn.edu.ec).",
+    }),
 
   // Validación de contraseña: mínimo 8 caracteres
   password: z

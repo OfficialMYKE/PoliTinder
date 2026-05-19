@@ -1,5 +1,9 @@
 import * as z from "zod";
 
+/**
+ * Esquema de validación del formulario de recuperación de contraseña
+ * Requiere un correo institucional con dominio @epn.edu.ec
+ */
 export const forgotPasswordSchema = z.object({
   email: z
     .string()

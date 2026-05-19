@@ -35,8 +35,8 @@ interface AuthFormSplitScreenProps {
 }
 
 /**
- * Componente principal de Login que muestra una imagen a la izquierda y el formulario a la derecha.
- * Utiliza Framer Motion para animaciones y Tailwind CSS para el diseño.
+ * Componente de inicio de sesión con pantalla dividida
+ * Panel izquierdo: imagen decorativa | Panel derecho: formulario de autenticación
  */
 export function AuthFormSplitScreen({
   title,
@@ -49,13 +49,12 @@ export function AuthFormSplitScreen({
   serverAlert = null,
   onMicrosoftClick,
 }: AuthFormSplitScreenProps) {
-  // Hook personalizado que maneja la lógica del formulario (validación, estados de carga, etc.)
   const { form, isLoading, showPassword, setShowPassword, handleSubmit } =
     useLoginForm({ onSubmit });
 
   return (
     <div className="fixed inset-0 flex w-full flex-col md:flex-row overflow-hidden bg-white">
-      {/* PANEL IZQUIERDO: Imagen decorativa con gradiente (oculto en móviles) */}
+      {/* Imagen decorativa con gradiente — oculta en dispositivos móviles */}
       <div className="relative hidden w-1/2 md:block">
         <img
           src={imageSrc}
@@ -65,7 +64,7 @@ export function AuthFormSplitScreen({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
-      {/* PANEL DERECHO: Contenedor del formulario */}
+      {/* Formulario de autenticación con scroll */}
       <div className="flex flex-1 flex-col items-center justify-center p-8 pb-28 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex flex-col min-h-full w-full p-8 pt-12">
           <div className="flex-1 flex items-center justify-center">
@@ -76,7 +75,7 @@ export function AuthFormSplitScreen({
                 animate="visible"
                 className="flex flex-col gap-6"
               >
-                {/* Encabezado: Título y descripción */}
+                {/* Título y descripción de la pantalla */}
                 <motion.div
                   variants={theme.animation.itemVariants}
                   className="flex flex-col items-center justify-center text-center"
@@ -87,7 +86,7 @@ export function AuthFormSplitScreen({
                   <p className="text-sm text-slate-500">{description}</p>
                 </motion.div>
 
-                {/* Botón de Autenticación con Microsoft */}
+                {/* Autenticación con Microsoft OAuth */}
                 <motion.div variants={theme.animation.itemVariants}>
                   <Button
                     variant="outline"
@@ -98,7 +97,7 @@ export function AuthFormSplitScreen({
                   </Button>
                 </motion.div>
 
-                {/* Separador visual */}
+                {/* Separador visual entre OAuth y formulario */}
                 <motion.div
                   variants={theme.animation.itemVariants}
                   className="relative my-0"
@@ -113,7 +112,7 @@ export function AuthFormSplitScreen({
                   </div>
                 </motion.div>
 
-                {/* Alerta del servidor (errores/success) */}
+                {/* Alertas del servidor (error/success) */}
                 {serverAlert && (
                   <motion.div variants={theme.animation.itemVariants}>
                     <Alert
@@ -124,14 +123,13 @@ export function AuthFormSplitScreen({
                   </motion.div>
                 )}
 
-                {/* Formulario de React Hook Form */}
+                {/* Formulario gestionado por React Hook Form */}
                 <Form {...form}>
                   <form
                     onSubmit={form.handleSubmit(handleSubmit)}
                     className="space-y-5"
                     autoComplete="off"
                   >
-                    {/* Campos del formulario extraídos en componentes pequeños (SRP) */}
                     <EmailField form={form} isLoading={isLoading} />
                     <PasswordField
                       form={form}
@@ -142,7 +140,7 @@ export function AuthFormSplitScreen({
                     <RememberMeField form={form} isLoading={isLoading} />
                     <SubmitButton isLoading={isLoading} text="Iniciar sesión" />
 
-                    {/* Enlace para creación de cuenta */}
+                    {/* Enlace a la pantalla de registro */}
                     <motion.p
                       variants={theme.animation.itemVariants}
                       className="px-8 text-center text-sm text-slate-600 mt-4"
@@ -170,7 +168,7 @@ export function AuthFormSplitScreen({
 }
 
 /**
- * Campo de correo electrónico con icono y validación.
+ * Campo de correo electrónico institucional con icono y validación en tiempo real
  */
 function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
   return (
@@ -211,7 +209,7 @@ function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
 }
 
 /**
- * Campo de contraseña con opción de mostrar y ocultar texto.
+ * Campo de contraseña con toggle de visibilidad y validación en tiempo real
  */
 function PasswordField({
   form,
@@ -280,7 +278,7 @@ function PasswordField({
 }
 
 /**
- * Checkbox para la opción "Recordarme" y enlace de recuperación de contraseña.
+ * Checkbox "Recordarme" y enlace de recuperación de contraseña
  */
 function RememberMeField({
   form,
@@ -328,7 +326,7 @@ function RememberMeField({
 }
 
 /**
- * Botón de envío con estado de carga (spinner).
+ * Botón de envío del formulario con indicador de carga
  */
 function SubmitButton({
   isLoading,

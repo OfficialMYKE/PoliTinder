@@ -1,6 +1,6 @@
 /**
- * Servicio de almacenamiento de token - ISP y DIP
- * Depende de la abstracción (IStorageAdapter), no de una implementación concreta
+ * Servicio de almacenamiento de token — ISP y DIP
+ * Depende de la abstracción IStorageAdapter, no de una implementación concreta
  */
 
 import { ITokenStorage } from "./ITokenStorage";

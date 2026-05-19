@@ -9,7 +9,7 @@ export type { IStorageAdapter } from "./IStorageAdapter";
 export type { ITokenStorage } from "./ITokenStorage";
 export type { IUserStorage } from "./IUserStorage";
 
-// Función de fábrica para crear instancias de almacenamiento - DIP
+// Función de fábrica (Factory) para crear instancias de almacenamiento — DIP
 import { IStorageAdapter } from "./IStorageAdapter";
 import { LocalStorageAdapter } from "./LocalStorageAdapter";
 import { TokenStorage } from "./TokenStorage";

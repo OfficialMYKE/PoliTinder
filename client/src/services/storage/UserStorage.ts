@@ -1,6 +1,6 @@
 /**
- * Servicio de almacenamiento de usuario - ISP y DIP
- * Depende de la abstracción (IStorageAdapter), no de una implementación concreta
+ * Servicio de almacenamiento de usuario — ISP y DIP
+ * Depende de la abstracción IStorageAdapter, no de una implementación concreta
  */
 
 import { IUserStorage } from "./IUserStorage";
