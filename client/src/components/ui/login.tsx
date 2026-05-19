@@ -6,6 +6,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "./button";
+import { Alert } from "./alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./form";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
@@ -15,9 +16,12 @@ import { useLoginForm } from "../../hooks/useLoginForm";
 import type { LoginFormValues } from "../../schemas/loginSchema";
 import { theme } from "../../config/theme";
 
-/**
- * Props para el componente de autenticación con pantalla dividida.
- */
+interface ServerAlert {
+  type: "error" | "success";
+  title: string;
+  message: string;
+}
+
 interface AuthFormSplitScreenProps {
   title: string;
   description: string;
@@ -26,6 +30,8 @@ interface AuthFormSplitScreenProps {
   onSubmit: (data: LoginFormValues) => Promise<void>;
   forgotPasswordHref: string;
   createAccountHref: string;
+  serverAlert?: ServerAlert | null;
+  onMicrosoftClick?: () => void;
 }
 
 /**
@@ -40,6 +46,8 @@ export function AuthFormSplitScreen({
   onSubmit,
   forgotPasswordHref,
   createAccountHref,
+  serverAlert = null,
+  onMicrosoftClick,
 }: AuthFormSplitScreenProps) {
   // Hook personalizado que maneja la lógica del formulario (validación, estados de carga, etc.)
   const { form, isLoading, showPassword, setShowPassword, handleSubmit } =
@@ -84,7 +92,7 @@ export function AuthFormSplitScreen({
                   <Button
                     variant="outline"
                     className="w-full font-medium h-12 rounded-full border-slate-200 bg-slate-50 hover:bg-slate-100"
-                    onClick={() => console.log("Microsoft")}
+                    onClick={onMicrosoftClick}
                   >
                     <MicrosoftIcon /> Continuar con Microsoft
                   </Button>
@@ -104,6 +112,17 @@ export function AuthFormSplitScreen({
                     </span>
                   </div>
                 </motion.div>
+
+                {/* Alerta del servidor (errores/success) */}
+                {serverAlert && (
+                  <motion.div variants={theme.animation.itemVariants}>
+                    <Alert
+                      variant={serverAlert.type}
+                      title={serverAlert.title}
+                      description={serverAlert.message}
+                    />
+                  </motion.div>
+                )}
 
                 {/* Formulario de React Hook Form */}
                 <Form {...form}>

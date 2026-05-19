@@ -6,6 +6,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "./button";
+import { Alert } from "./alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./form";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
@@ -15,6 +16,12 @@ import { useRegisterForm } from "../../hooks/useRegisterForm";
 import type { RegisterFormValues } from "../../schemas/registerSchema";
 import { theme } from "../../config/theme";
 
+interface ServerAlert {
+  type: "error" | "success";
+  title: string;
+  message: string;
+}
+
 interface RegisterFormSplitScreenProps {
   title: string;
   description: string;
@@ -22,6 +29,8 @@ interface RegisterFormSplitScreenProps {
   imageAlt: string;
   onSubmit: (data: RegisterFormValues) => Promise<void>;
   loginHref: string;
+  serverAlert?: ServerAlert | null;
+  onMicrosoftClick?: () => void;
 }
 
 export function RegisterFormSplitScreen({
@@ -31,6 +40,8 @@ export function RegisterFormSplitScreen({
   imageAlt,
   onSubmit,
   loginHref,
+  serverAlert = null,
+  onMicrosoftClick,
 }: RegisterFormSplitScreenProps) {
   const {
     form,
@@ -79,7 +90,7 @@ export function RegisterFormSplitScreen({
                   <Button
                     variant="outline"
                     className="w-full font-medium h-12 rounded-full border-slate-200 bg-slate-50 hover:bg-slate-100"
-                    onClick={() => console.log("Microsoft Register")}
+                    onClick={onMicrosoftClick}
                   >
                     <MicrosoftIcon /> Registrarse con Microsoft
                   </Button>
@@ -98,6 +109,17 @@ export function RegisterFormSplitScreen({
                     </span>
                   </div>
                 </motion.div>
+
+                {/* Alerta del servidor (errores/success) */}
+                {serverAlert && (
+                  <motion.div variants={theme.animation.itemVariants}>
+                    <Alert
+                      variant={serverAlert.type}
+                      title={serverAlert.title}
+                      description={serverAlert.message}
+                    />
+                  </motion.div>
+                )}
 
                 <Form {...form}>
                   <form
@@ -160,6 +182,8 @@ export function RegisterFormSplitScreen({
             <div className="w-full mt-8 flex items-center justify-center">
               <AuthFooter />
             </div>
+
+
           </div>
         </div>
       </div>
@@ -377,19 +401,23 @@ function TermsField({ form, isLoading }: { form: any; isLoading: boolean }) {
             <div className="space-y-1 leading-none">
               <label className="text-sm text-slate-600 font-normal">
                 Acepto los{" "}
-                <Link
-                  to="#"
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="font-normal text-[#487CFF] hover:underline"
                 >
                   Términos
-                </Link>{" "}
+                </a>{" "}
                 y la{" "}
-                <Link
-                  to="#"
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="font-normal text-[#487CFF] hover:underline"
                 >
                   Política
-                </Link>
+                </a>
                 .
               </label>
             </div>

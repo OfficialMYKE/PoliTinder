@@ -2,8 +2,11 @@ import { createContext, useContext, useState, ReactNode, useCallback } from "rea
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  OAuthProvider,
   signOut,
   updateProfile,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { IAuthUser, IAuthState, IAuthError } from "../types/auth";
 import { ITokenStorage } from "../services/storage/ITokenStorage";
@@ -19,6 +22,8 @@ interface AuthContextProps {
     email: string;
     password: string;
   }) => Promise<void>;
+  loginWithMicrosoft: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -159,6 +164,68 @@ export function AuthProvider({
     [tokenStorage, userStorage]
   );
 
+  const loginWithMicrosoft = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    try {
+      const provider = new OAuthProvider("microsoft.com");
+      provider.setCustomParameters({
+        prompt: "select_account",
+        tenant: "organizations",
+      });
+      const result = await signInWithPopup(auth, provider);
+      const { user: fbUser } = result;
+      const token = await fbUser.getIdToken();
+      const user: IAuthUser = {
+        id: fbUser.uid,
+        email: fbUser.email || "",
+        firstName: fbUser.displayName?.split(" ")[0] || "",
+        lastName: fbUser.displayName?.split(" ").slice(1).join(" ") || "",
+        createdAt: fbUser.metadata.creationTime
+          ? new Date(fbUser.metadata.creationTime)
+          : new Date(),
+      };
+
+      tokenStorage.setToken(token);
+      userStorage.setUser(user);
+
+      setState({
+        user,
+        token,
+        isLoading: false,
+        error: null,
+        isAuthenticated: true,
+      });
+    } catch (error: any) {
+      const mapped = mapFirebaseError(error);
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: mapped,
+      }));
+      throw mapped;
+    }
+  }, [tokenStorage, userStorage]);
+
+  const resetPassword = useCallback(async (email: string) => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: any) {
+      const mapped = mapFirebaseError(error);
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: mapped,
+      }));
+      throw mapped;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
@@ -177,7 +244,7 @@ export function AuthProvider({
   }, [tokenStorage, userStorage]);
 
   return (
-    <AuthContext.Provider value={{ state, login, register, logout }}>
+    <AuthContext.Provider value={{ state, login, register, loginWithMicrosoft, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
