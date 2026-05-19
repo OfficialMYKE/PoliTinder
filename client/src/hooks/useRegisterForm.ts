@@ -1,6 +1,6 @@
 /**
- * useRegisterForm Hook - SRP (Single Responsibility Principle)
- * Encapsulates register form logic separate from UI rendering
+ * Hook useRegisterForm - SRP (Principio de Responsabilidad Única)
+ * Encapsula la lógica del formulario de registro separada del renderizado UI
  */
 
 import { useState } from "react";

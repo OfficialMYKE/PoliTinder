@@ -1,12 +1,14 @@
-/**
- * AuthContext - DIP (Dependency Inversion Principle)
- * Provides auth state and services via React Context for dependency injection
- */
-
 import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
 import { IAuthUser, IAuthState, IAuthError } from "../types/auth";
 import { ITokenStorage } from "../services/storage/ITokenStorage";
 import { IUserStorage } from "../services/storage/IUserStorage";
+import { auth } from "../services/firebase";
 
 interface AuthContextProps {
   state: IAuthState;
@@ -28,6 +30,24 @@ interface AuthProviderProps {
   userStorage: IUserStorage;
 }
 
+function mapFirebaseError(error: any): IAuthError {
+  const code = error?.code || "UNKNOWN_ERROR";
+  const messages: Record<string, string> = {
+    "auth/user-not-found": "No se encontró una cuenta con este correo.",
+    "auth/wrong-password": "Contraseña incorrecta.",
+    "auth/invalid-credential": "Correo o contraseña incorrectos.",
+    "auth/email-already-in-use": "Este correo ya está registrado.",
+    "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+    "auth/invalid-email": "El correo ingresado no es válido.",
+    "auth/too-many-requests": "Demasiados intentos. Intenta más tarde.",
+    "auth/network-request-failed": "Error de conexión. Verifica tu internet.",
+  };
+  return {
+    code,
+    message: messages[code] || error?.message || "Ocurrió un error inesperado.",
+  };
+}
+
 export function AuthProvider({
   children,
   tokenStorage,
@@ -45,38 +65,41 @@ export function AuthProvider({
     async (credentials: { email: string; password: string }) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       try {
-        // Simulate API call - replace with actual API
-        const mockResponse = {
-          user: {
-            id: "1",
-            email: credentials.email,
-            firstName: "User",
-            lastName: "Test",
-            createdAt: new Date(),
-          } as IAuthUser,
-          token: "mock-token",
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          credentials.email,
+          credentials.password
+        );
+        const { user: fbUser } = userCredential;
+        const token = await fbUser.getIdToken();
+        const user: IAuthUser = {
+          id: fbUser.uid,
+          email: fbUser.email || credentials.email,
+          firstName: fbUser.displayName?.split(" ")[0] || "",
+          lastName: fbUser.displayName?.split(" ").slice(1).join(" ") || "",
+          createdAt: fbUser.metadata.creationTime
+            ? new Date(fbUser.metadata.creationTime)
+            : new Date(),
         };
 
-        tokenStorage.setToken(mockResponse.token);
-        userStorage.setUser(mockResponse.user);
+        tokenStorage.setToken(token);
+        userStorage.setUser(user);
 
         setState({
-          user: mockResponse.user,
-          token: mockResponse.token,
+          user,
+          token,
           isLoading: false,
           error: null,
           isAuthenticated: true,
         });
-      } catch (error) {
+      } catch (error: any) {
+        const mapped = mapFirebaseError(error);
         setState((prev) => ({
           ...prev,
           isLoading: false,
-          error: {
-            code: "LOGIN_ERROR",
-            message: "Login failed",
-          } as IAuthError,
+          error: mapped,
         }));
-        throw error;
+        throw mapped;
       }
     },
     [tokenStorage, userStorage]
@@ -91,44 +114,57 @@ export function AuthProvider({
     }) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       try {
-        // Simulate API call - replace with actual API
-        const mockResponse = {
-          user: {
-            id: "1",
-            email: credentials.email,
-            firstName: credentials.firstName,
-            lastName: credentials.lastName,
-            createdAt: new Date(),
-          } as IAuthUser,
-          token: "mock-token",
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          credentials.email,
+          credentials.password
+        );
+        const { user: fbUser } = userCredential;
+
+        await updateProfile(fbUser, {
+          displayName: `${credentials.firstName} ${credentials.lastName}`,
+        });
+
+        const token = await fbUser.getIdToken();
+        const user: IAuthUser = {
+          id: fbUser.uid,
+          email: fbUser.email || credentials.email,
+          firstName: credentials.firstName,
+          lastName: credentials.lastName,
+          createdAt: fbUser.metadata.creationTime
+            ? new Date(fbUser.metadata.creationTime)
+            : new Date(),
         };
 
-        tokenStorage.setToken(mockResponse.token);
-        userStorage.setUser(mockResponse.user);
+        tokenStorage.setToken(token);
+        userStorage.setUser(user);
 
         setState({
-          user: mockResponse.user,
-          token: mockResponse.token,
+          user,
+          token,
           isLoading: false,
           error: null,
           isAuthenticated: true,
         });
-      } catch (error) {
+      } catch (error: any) {
+        const mapped = mapFirebaseError(error);
         setState((prev) => ({
           ...prev,
           isLoading: false,
-          error: {
-            code: "REGISTER_ERROR",
-            message: "Registration failed",
-          } as IAuthError,
+          error: mapped,
         }));
-        throw error;
+        throw mapped;
       }
     },
     [tokenStorage, userStorage]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch {
+      // continúa aunque falle el cierre de sesión remoto
+    }
     tokenStorage.removeToken();
     userStorage.removeUser();
     setState({

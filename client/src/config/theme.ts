@@ -1,6 +1,6 @@
 /**
- * Theme Configuration - OCP (Open/Closed Principle)
- * Centralized theme values that can be extended without modifying components
+ * Configuración del tema - OCP (Principio Abierto/Cerrado)
+ * Valores centralizados del tema que pueden extenderse sin modificar componentes
  */
 
 export const theme = {

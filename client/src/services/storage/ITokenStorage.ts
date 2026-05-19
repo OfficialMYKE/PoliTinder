@@ -1,6 +1,6 @@
 /**
- * Token Storage Interface - ISP (Interface Segregation Principle)
- * Segregated interface for token operations only
+ * Interfaz de almacenamiento de token - ISP (Principio de Segregación de Interfaces)
+ * Interfaz segregada solo para operaciones de token
  */
 
 export interface ITokenStorage {

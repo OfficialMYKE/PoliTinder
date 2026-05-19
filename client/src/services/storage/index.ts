@@ -1,5 +1,5 @@
 /**
- * Storage Services Barrel Export
+ * Exportaciones agrupadas de servicios de almacenamiento
  */
 
 export { LocalStorageAdapter } from "./LocalStorageAdapter";
@@ -9,7 +9,7 @@ export type { IStorageAdapter } from "./IStorageAdapter";
 export type { ITokenStorage } from "./ITokenStorage";
 export type { IUserStorage } from "./IUserStorage";
 
-// Factory function for creating storage instances - DIP
+// Función de fábrica para crear instancias de almacenamiento - DIP
 import { IStorageAdapter } from "./IStorageAdapter";
 import { LocalStorageAdapter } from "./LocalStorageAdapter";
 import { TokenStorage } from "./TokenStorage";

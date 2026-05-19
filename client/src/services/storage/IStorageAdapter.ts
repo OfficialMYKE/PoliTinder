@@ -1,6 +1,6 @@
 /**
- * Storage Adapter Interface - DIP (Dependency Inversion Principle)
- * Abstraction that high-level modules depend on
+ * Adaptador de almacenamiento - DIP (Principio de Inversión de Dependencias)
+ * Abstracción de la que dependen los módulos de alto nivel
  */
 
 export interface IStorageAdapter {

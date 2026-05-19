@@ -12,7 +12,6 @@ export default function Login() {
    * Ejecuta la autenticación cuando el formulario se envía correctamente.
    */
   const handleLogin = async (data: any) => {
-    // Aquí podrías añadir lógica adicional antes o después del login
     await login({ email: data.email, password: data.password });
   };
 

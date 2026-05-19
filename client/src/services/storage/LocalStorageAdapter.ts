@@ -1,6 +1,6 @@
 /**
- * LocalStorage Adapter - DIP (Dependency Inversion Principle)
- * Concrete implementation of IStorageAdapter
+ * Adaptador de LocalStorage - DIP (Principio de Inversión de Dependencias)
+ * Implementación concreta de IStorageAdapter
  */
 
 import { IStorageAdapter } from "./IStorageAdapter";
