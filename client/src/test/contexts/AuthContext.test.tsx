@@ -15,6 +15,7 @@ vi.mock("firebase/auth", () => ({
 
 vi.mock("../../services/firebase", () => ({
   auth: {},
+  firebaseApiKey: "test-api-key",
 }));
 
 const mockTokenStorage = {
@@ -57,9 +58,7 @@ describe("AuthContext", () => {
   });
 
   it("login exitoso actualiza el estado", async () => {
-    const signInWithEmailAndPassword = (
-      await import("firebase/auth")
-    ).signInWithEmailAndPassword;
+    const { signInWithEmailAndPassword } = await import("firebase/auth");
     const mockUser = {
       uid: "123",
       email: "test@epn.edu.ec",
@@ -91,9 +90,7 @@ describe("AuthContext", () => {
   });
 
   it("login con error mapea el mensaje a español", async () => {
-    const signInWithEmailAndPassword = (
-      await import("firebase/auth")
-    ).signInWithEmailAndPassword;
+    const { signInWithEmailAndPassword } = await import("firebase/auth");
     vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
       code: "auth/user-not-found",
     });
@@ -116,9 +113,7 @@ describe("AuthContext", () => {
   });
 
   it("registro exitoso actualiza el estado", async () => {
-    const createUserWithEmailAndPassword = (
-      await import("firebase/auth")
-    ).createUserWithEmailAndPassword;
+    const { createUserWithEmailAndPassword } = await import("firebase/auth");
     const mockUser = {
       uid: "456",
       email: "new@epn.edu.ec",
@@ -165,8 +160,12 @@ describe("AuthContext", () => {
     expect(mockUserStorage.removeUser).toHaveBeenCalled();
   });
 
-  it("resetPassword envía el email de recuperación", async () => {
-    const { sendPasswordResetEmail } = await import("firebase/auth");
+  it("resetPassword verifica que el email existe antes de enviar", async () => {
+    const { signInWithEmailAndPassword, sendPasswordResetEmail } =
+      await import("firebase/auth");
+    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
+      code: "auth/wrong-password",
+    });
     vi.mocked(sendPasswordResetEmail).mockResolvedValue(undefined);
 
     const { result } = renderAuthHook();
@@ -182,9 +181,9 @@ describe("AuthContext", () => {
     expect(result.current.state.isLoading).toBe(false);
   });
 
-  it("resetPassword con error mapea el mensaje", async () => {
-    const { sendPasswordResetEmail } = await import("firebase/auth");
-    vi.mocked(sendPasswordResetEmail).mockRejectedValue({
+  it("resetPassword falla si el email no existe", async () => {
+    const { signInWithEmailAndPassword } = await import("firebase/auth");
+    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
       code: "auth/user-not-found",
     });
 
@@ -198,6 +197,29 @@ describe("AuthContext", () => {
 
     expect(result.current.state.error?.message).toBe(
       "No se encontró una cuenta con este correo."
+    );
+  });
+
+  it("resetPassword con error de Firebase mapea el mensaje", async () => {
+    const { signInWithEmailAndPassword, sendPasswordResetEmail } =
+      await import("firebase/auth");
+    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
+      code: "auth/wrong-password",
+    });
+    vi.mocked(sendPasswordResetEmail).mockRejectedValue({
+      code: "auth/too-many-requests",
+    });
+
+    const { result } = renderAuthHook();
+
+    await act(async () => {
+      try {
+        await result.current.resetPassword("user@epn.edu.ec");
+      } catch {}
+    });
+
+    expect(result.current.state.error?.message).toBe(
+      "Demasiados intentos. Intenta más tarde."
     );
   });
 });

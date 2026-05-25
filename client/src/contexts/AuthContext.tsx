@@ -219,9 +219,25 @@ export function AuthProvider({
     }
   }, [tokenStorage, userStorage]);
 
+  const checkEmailExists = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      await signInWithEmailAndPassword(auth, email, "POLITINDER_CHECK_EXISTS");
+      return true;
+    } catch (error: any) {
+      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
+        return true;
+      }
+      return false;
+    }
+  }, []);
+
   const resetPassword = useCallback(async (email: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
+      const exists = await checkEmailExists(email);
+      if (!exists) {
+        throw { code: "auth/user-not-found" };
+      }
       await sendPasswordResetEmail(auth, email);
       setState((prev) => ({
         ...prev,
@@ -237,7 +253,7 @@ export function AuthProvider({
       }));
       throw mapped;
     }
-  }, []);
+  }, [checkEmailExists]);
 
   const logout = useCallback(async () => {
     try {
