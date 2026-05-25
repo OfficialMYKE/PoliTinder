@@ -24,12 +24,15 @@
 
 - [Descripción](#-descripción)
 - [Características](#-características)
+- [Roles del Sistema](#-roles-del-sistema)
 - [Arquitectura](#-arquitectura)
 - [Stack Tecnológico](#-stack-tecnológico)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Requisitos Previos](#-requisitos-previos)
 - [Instalación y Configuración](#-instalación-y-configuración)
 - [Scripts Disponibles](#-scripts-disponibles)
+- [Pruebas](#-pruebas)
+- [Documentación de API (Postman)](#-documentación-de-api-postman)
 - [Autenticación](#-autenticación)
 - [Principios de Diseño](#-principios-de-diseño)
 - [Roadmap](#-roadmap)
@@ -68,10 +71,32 @@ El acceso está estrictamente restringido a cuentas de correo institucional con 
 ### Planificadas
 
 - Dashboard principal con perfiles de usuario.
+- Confirmación de cuenta por correo electrónico.
 - Algoritmo de matchmaking por afinidad académica.
 - Sistema de mensajería en tiempo real (Supabase Realtime).
 - Feed de actividad y notificaciones.
 - Perfiles públicos con facultad, carrera y áreas de interés.
+- Migración de base de datos a Supabase + PostgreSQL.
+
+---
+
+## Roles del Sistema
+
+### Estudiante
+
+- Registro e inicio de sesión con correo institucional (`@epn.edu.ec`).
+- Recuperación de contraseña mediante enlace al correo.
+- Gestión de perfil personal (datos académicos, intereses, foto).
+- Búsqueda y matchmaking con otros estudiantes por afinidad académica.
+- Participación en grupos de estudio y mensajería entre pares.
+
+### Administrador
+
+- Gestión de usuarios (ver, bloquear, eliminar cuentas).
+- Moderación de contenido y reportes de la comunidad.
+- Configuración del catálogo de facultades, carreras y áreas de interés.
+- Visualización de estadísticas de uso de la plataforma.
+- Administración de denuncias y soporte.
 
 ---
 
@@ -128,13 +153,14 @@ El acceso está estrictamente restringido a cuentas de correo institucional con 
 | Animaciones   | Framer Motion v12                              |
 | Iconos        | Lucide React                                   |
 
-### Backend (Planificado)
+### Backend (BaaS en la Nube)
 
-| Categoría     | Tecnología                                         |
-| ------------- | -------------------------------------------------- |
-| Base de Datos | PostgreSQL via Supabase                            |
-| API           | Supabase Realtime                                  |
-| Autenticación | Firebase Auth (existente) + Supabase Auth (futuro) |
+| Categoría      | Tecnología                                          |
+| -------------- | --------------------------------------------------- |
+| Autenticación  | Firebase Auth (email/contraseña + Microsoft OAuth)  |
+| Base de Datos  | Firebase (Auth) — cloud-native, sin servidor propio |
+| Almacenamiento | LocalStorage (sesión) vía patrón Adapter            |
+| Futuro         | Supabase + PostgreSQL (migración planificada)       |
 
 ---
 
@@ -142,36 +168,46 @@ El acceso está estrictamente restringido a cuentas de correo institucional con 
 
 ```
 politinder-workspace/
-├── client/                          # Frontend (React SPA)
-│   ├── public/                      # Archivos estáticos
+├── client/                              # Frontend (React SPA)
+│   ├── public/                          # Archivos estáticos
 │   ├── src/
-│   │   ├── assets/                  # Recursos visuales
+│   │   ├── assets/                      # Recursos visuales (logo, imágenes)
 │   │   ├── components/
-│   │   │   ├── icons/               # Iconos personalizados
-│   │   │   └── ui/                  # Componentes base (shadcn/ui)
-│   │   ├── config/                  # Configuración del tema
-│   │   ├── contexts/                # Contextos de React
-│   │   ├── hooks/                   # Custom hooks
-│   │   ├── lib/                     # Utilidades (cn)
-│   │   ├── pages/                   # Vistas por ruta
-│   │   ├── schemas/                 # Validación Zod
-│   │   ├── services/                # Lógica de negocio
-│   │   │   └── storage/             # Capa de persistencia
-│   │   └── types/                   # Interfaces compartidas
-│   ├── .env                         # Variables de entorno (Firebase)
+│   │   │   ├── common/                  # Componentes compartidos (WIP)
+│   │   │   ├── forms/                   # Componentes de formulario (WIP)
+│   │   │   ├── icons/                   # Iconos personalizados (Microsoft)
+│   │   │   ├── layouts/                 # Layouts reutilizables (WIP)
+│   │   │   └── ui/                      # Componentes base shadcn/ui
+│   │   ├── config/                      # Configuración del tema (theme.ts)
+│   │   ├── contexts/                    # Contextos de React (AuthContext)
+│   │   ├── hooks/                       # Custom hooks (useLoginForm, etc.)
+│   │   ├── lib/                         # Utilidades (cn)
+│   │   ├── pages/                       # Vistas por ruta (5 páginas)
+│   │   ├── schemas/                     # Validación Zod (3 schemas)
+│   │   ├── services/                    # Lógica de negocio
+│   │   │   ├── firebase.ts              # Configuración Firebase
+│   │   │   └── storage/                 # Capa de persistencia (Adapter)
+│   │   └── types/                       # Interfaces compartidas
+│   ├── .env                             # Variables de entorno (Firebase)
+│   ├── .gitignore
+│   ├── components.json                  # Configuración shadcn/ui
+│   ├── eslint.config.js
+│   ├── index.html                       # Entry point HTML
+│   ├── jsconfig.json
 │   ├── package.json
-│   ├── tailwind.config.js
 │   ├── tsconfig.json
 │   └── vite.config.js
 │
-├── server/                          # Backend (stub inicial)
+├── server/                              # Backend (pendiente de implementar)
 │   └── package.json
 │
-├── docs/                            # Documentación
+├── docs/                                # Documentación
 │   ├── ARQUITECTURA.md
-│   └── CONTRIBUIR.md
+│   ├── CONTRIBUIR.md
+│   └── postman/                         # Documentación de API (Postman)
+│       └── PoliTinder-API.postman_collection.json
 │
-└── README.md                        # Este archivo
+└── README.md                            # Este archivo
 ```
 
 ---
@@ -215,7 +251,7 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
-> **⚠️ Importante**: No commits los valores reales de tus credenciales. Agrega `.env` a `.gitignore`.
+> ** Importante**: No commits los valores reales de tus credenciales. Agrega `.env` a `.gitignore`.
 
 ### 4. Iniciar el servidor de desarrollo
 
@@ -231,12 +267,72 @@ La aplicación estará disponible en `http://localhost:5173`.
 
 ### Frontend (`client/`)
 
-| Comando           | Descripción                             |
-| ----------------- | --------------------------------------- |
-| `npm run dev`     | Inicia el servidor de desarrollo (Vite) |
-| `npm run build`   | Compila para producción                 |
-| `npm run preview` | Previsualiza el build de producción     |
-| `npm run lint`    | Ejecuta ESLint sobre el código fuente   |
+| Comando              | Descripción                             |
+| -------------------- | --------------------------------------- |
+| `npm run dev`        | Inicia el servidor de desarrollo (Vite) |
+| `npm run build`      | Compila para producción                 |
+| `npm run preview`    | Previsualiza el build de producción     |
+| `npm run lint`       | Ejecuta ESLint sobre el código fuente   |
+| `npm run test`       | Ejecuta los tests una vez (Vitest)      |
+| `npm run test:watch` | Ejecuta los tests en modo watch         |
+
+---
+
+## Pruebas
+
+El proyecto utiliza **Vitest** + **@testing-library/react** para las pruebas unitarias y de componentes.
+
+### Tests Implementados
+
+| Categoría   | Archivo                         | Tests | Descripción                                              |
+| ----------- | ------------------------------- | ----- | -------------------------------------------------------- |
+| Schemas     | `loginSchema.test.ts`           | 7     | Validación de email, password, rememberMe                |
+| Schemas     | `registerSchema.test.ts`        | 10    | Validación de nombres, email, password, términos         |
+| Schemas     | `forgotPasswordSchema.test.ts`  | 5     | Validación de email institucional                        |
+| Hooks       | `useLoginForm.test.ts`          | 4     | Estado inicial, envío, errores                           |
+| Hooks       | `useRegisterForm.test.ts`       | 5     | Estado inicial, visibilidad, envío                       |
+| Hooks       | `useForgotPasswordForm.test.ts` | 3     | Estado inicial, envío, errores                           |
+| AuthContext | `AuthContext.test.tsx`          | 7     | Login, registro, logout, resetPassword, errores mapeados |
+| Componentes | `Login.test.tsx`                | 5     | Renderizado de título, botones, enlaces                  |
+| Componentes | `Register.test.tsx`             | 4     | Renderizado de título, botones, enlaces                  |
+| Componentes | `ForgotPassword.test.tsx`       | 3     | Renderizado de título, botón, enlace                     |
+
+### Ejecutar Pruebas
+
+```bash
+cd client
+npm run test        # Una vez
+npm run test:watch  # Modo watch
+```
+
+---
+
+## Documentación de API (Postman)
+
+La documentación de los endpoints de la API está disponible como colección de **Postman** en el formato Collection v2.1.
+
+### Colección incluida
+
+| Archivo | Descripción |
+|---|---|
+| `docs/postman/PoliTinder-API.postman_collection.json` | Colección completa con 17 endpoints |
+
+### Endpoints Documentados
+
+| Categoría | Endpoints | Estado |
+|---|---|---|
+| 🔐 Autenticación (Firebase REST API) | Registro, Login, Recuperar Contraseña, Obtener Usuario, Actualizar Perfil, Cambiar Contraseña, Refrescar Token | ✅ Funcional |
+| 👤 Perfiles | Obtener/Actualizar Perfil, Subir Foto | 📝 Planificado |
+| 🤝 Matching | Sugerencias, Like/Pass, Listar Matches | 📝 Planificado |
+| 💬 Mensajería | Enviar/Recibir Mensajes, Marcar Leído | 📝 Planificado |
+| ⚙️ Administración | Usuarios, Bloqueos, Denuncias, Catálogo | 📝 Planificado |
+
+### Cómo Importar
+
+1. Abre [Postman](https://www.postman.com/downloads/)
+2. Haz clic en **Import** → **Upload Files**
+3. Selecciona `docs/postman/PoliTinder-API.postman_collection.json`
+4. Las variables (`API_KEY`, `ID_TOKEN`) están preconfiguradas
 
 ---
 
@@ -278,16 +374,18 @@ Usuario → Formulario → Hook (useLoginForm/useRegisterForm)
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
-| Fase       | Funcionalidad                     | Estado           |
-| ---------- | --------------------------------- | ---------------- |
-| **Fase 1** | Sistema de autenticación          | ✅ Completado    |
-| **Fase 2** | Dashboard y perfiles de usuario   | 🔄 En desarrollo |
-| **Fase 3** | Algoritmo de matchmaking          | 📝 Planificado   |
-| **Fase 4** | Mensajería en tiempo real         | 📝 Planificado   |
-| **Fase 5** | Notificaciones y feed             | 📝 Planificado   |
-| **Fase 6** | Backend con Supabase + PostgreSQL | 📝 Planificado   |
+| Fase       | Funcionalidad                                                                           | Estado           |
+| ---------- | --------------------------------------------------------------------------------------- | ---------------- |
+| **Fase 1** | Sistema de autenticación (registro, login, recuperación de contraseña, Microsoft OAuth) | ✅ Completado    |
+| **Fase 2** | Confirmación de cuenta por correo                                                       | 📝 Planificado   |
+| **Fase 3** | Dashboard y perfiles de usuario (ver/editar perfil, cambiar foto)                       | 🔄 En desarrollo |
+| **Fase 4** | Roles del sistema (Estudiante y Administrador)                                          | 📝 Planificado   |
+| **Fase 5** | Algoritmo de matchmaking por afinidad académica                                         | 📝 Planificado   |
+| **Fase 6** | Mensajería en tiempo real (Supabase Realtime)                                           | 📝 Planificado   |
+| **Fase 7** | Notificaciones y feed de actividad                                                      | 📝 Planificado   |
+| **Fase 8** | Migración a Supabase + PostgreSQL                                                       | 📝 Planificado   |
 
 ---
 

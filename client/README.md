@@ -71,12 +71,14 @@ VITE_FIREBASE_MEASUREMENT_ID=tu_measurement_id
 
 ## Scripts
 
-| Comando           | Descripción                           |
-| ----------------- | ------------------------------------- |
-| `npm run dev`     | Inicia el servidor de desarrollo      |
-| `npm run build`   | Compila la aplicación para producción |
-| `npm run preview` | Previsualiza el build de producción   |
-| `npm run lint`    | Ejecuta ESLint sobre el código        |
+| Comando              | Descripción                              |
+| -------------------- | ---------------------------------------- |
+| `npm run dev`        | Inicia el servidor de desarrollo         |
+| `npm run build`      | Compila la aplicación para producción    |
+| `npm run preview`    | Previsualiza el build de producción      |
+| `npm run lint`       | Ejecuta ESLint sobre el código           |
+| `npm run test`       | Ejecuta los tests unitarios (Vitest)     |
+| `npm run test:watch` | Ejecuta los tests en modo watch          |
 
 ## Principios de Diseño
 

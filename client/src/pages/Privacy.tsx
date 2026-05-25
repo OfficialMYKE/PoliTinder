@@ -16,7 +16,7 @@ export default function Privacy() {
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center">
           <Link
-            to="/register"
+            to="/login"
             className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#487CFF] transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
