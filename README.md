@@ -319,13 +319,14 @@ La documentación de los endpoints de la API está disponible como colección de
 
 ### Endpoints Documentados
 
-| Categoría | Endpoints | Estado |
+| Endpoint | Método | Descripción |
 |---|---|---|
-| 🔐 Autenticación (Firebase REST API) | Registro, Login, Recuperar Contraseña, Obtener Usuario, Actualizar Perfil, Cambiar Contraseña, Refrescar Token | ✅ Funcional |
-| 👤 Perfiles | Obtener/Actualizar Perfil, Subir Foto | 📝 Planificado |
-| 🤝 Matching | Sugerencias, Like/Pass, Listar Matches | 📝 Planificado |
-| 💬 Mensajería | Enviar/Recibir Mensajes, Marcar Leído | 📝 Planificado |
-| ⚙️ Administración | Usuarios, Bloqueos, Denuncias, Catálogo | 📝 Planificado |
+| `POST /accounts:signUp` | Registro | Crear nueva cuenta |
+| `POST /accounts:signInWithPassword` | Login | Iniciar sesión |
+| `POST /accounts:sendOobCode` | Recuperar contraseña | Enviar enlace de restablecimiento |
+| `POST /accounts:lookup` | Obtener datos del usuario | Consultar perfil |
+| `POST /accounts:update` | Actualizar perfil | Cambiar nombre/foto |
+| `POST /token` | Refrescar token | Renovar JWT expirado |
 
 ### Cómo Importar
 

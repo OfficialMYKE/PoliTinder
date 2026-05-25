@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PoliTinder API",
-    "description": "# PoliTinder API\n\nDocumentación de la API de PoliTinder — Plataforma de Networking y Matchmaking Académico para la Escuela Politécnica Nacional.\n\n## Backend Actual\n- **Firebase Authentication** (BaaS): endpoints REST para autenticación\n- **Base URL**: `https://identitytoolkit.googleapis.com/v1`\n\n## Backend Futuro (Planificado)\n- **Supabase + PostgreSQL**: endpoints propios para perfiles, matching y mensajería\n- **Base URL**: `http://localhost:8000/api` (desarrollo) / `https://api.politinder.com` (producción)\n\n---\n\n> **Nota**: Reemplazar `{{API_KEY}}` con la clave de Firebase (`AIzaSyChjI-KKohCJh-6xs9i7lMeptdzqHQ2MOg`).\n> Las variables de entorno están preconfiguradas en la colección.",
+    "description": "# PoliTinder API\n\nDocumentación de la API de **Firebase Authentication** utilizada por PoliTinder.\n\n## Base URL\n`https://identitytoolkit.googleapis.com/v1`\n\n## Autenticación\nTodas las peticiones requieren el parámetro `?key={{API_KEY}}` con la API Key del proyecto Firebase.\n\n> La variable `API_KEY` está preconfigurada en la colección.\n> El `ID_TOKEN` se obtiene automáticamente al ejecutar Registro o Inicio de Sesión.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "politinder"
   },
@@ -17,11 +17,6 @@
       "type": "string"
     },
     {
-      "key": "BASE_URL",
-      "value": "http://localhost:8000/api",
-      "type": "string"
-    },
-    {
       "key": "ID_TOKEN",
       "value": "",
       "type": "string"
@@ -29,590 +24,208 @@
   ],
   "item": [
     {
-      "name": "🔐 Autenticación (Firebase)",
-      "description": "Endpoints de autenticación utilizando Firebase REST API.\n\nFirebase Auth permite registro, inicio de sesión, recuperación de contraseña y gestión de usuarios mediante llamadas HTTP directas.",
-      "item": [
+      "name": "Registro (Sign Up)",
+      "event": [
         {
-          "name": "Registro (Sign Up)",
-          "event": [
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
+              "",
+              "pm.test('Usuario registrado exitosamente', () => {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(json).to.have.property('idToken');",
+              "    pm.expect(json).to.have.property('refreshToken');",
+              "    pm.expect(json).to.have.property('localId');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"estudiante@epn.edu.ec\",\n  \"password\": \"MiPassword123\",\n  \"returnSecureToken\": true\n}"
+        },
+        "url": {
+          "raw": "{{FIREBASE_BASE_URL}}/accounts:signUp?key={{API_KEY}}",
+          "host": ["{{FIREBASE_BASE_URL}}"],
+          "path": ["accounts:signUp"],
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
-                  "",
-                  "pm.test('Usuario registrado exitosamente', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(json).to.have.property('idToken');",
-                  "    pm.expect(json).to.have.property('refreshToken');",
-                  "    pm.expect(json).to.have.property('localId');",
-                  "});"
-                ]
-              }
+              "key": "key",
+              "value": "{{API_KEY}}"
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"estudiante@epn.edu.ec\",\n  \"password\": \"MiPassword123\",\n  \"returnSecureToken\": true\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:signUp?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:signUp"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Crea una nueva cuenta de usuario con correo electrónico y contraseña.\n\n**Validaciones:**\n- Email debe ser del dominio @epn.edu.ec\n- Contraseña mínimo 8 caracteres\n\n**Respuesta:**\n- `idToken`: Token JWT para autenticación\n- `refreshToken`: Token para refrescar sesión\n- `localId`: UID del usuario en Firebase"
-          }
+          ]
         },
+        "description": "Crea una nueva cuenta de usuario.\n\n## Request Body\n- `email` (requerido): Correo institucional @epn.edu.ec\n- `password` (requerido): Mínimo 8 caracteres\n- `returnSecureToken` (requerido): `true`\n\n## Respuesta\n- `idToken`: Token JWT de autenticación\n- `refreshToken`: Token para refrescar la sesión\n- `localId`: UID del usuario en Firebase\n- `email`: Correo registrado"
+      }
+    },
+    {
+      "name": "Inicio de Sesión (Sign In)",
+      "event": [
         {
-          "name": "Inicio de Sesión (Sign In)",
-          "event": [
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
+              "",
+              "pm.test('Inicio de sesión exitoso', () => {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(json).to.have.property('idToken');",
+              "    pm.expect(json).to.have.property('registered', true);",
+              "    pm.expect(json).to.have.property('email');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"estudiante@epn.edu.ec\",\n  \"password\": \"MiPassword123\",\n  \"returnSecureToken\": true\n}"
+        },
+        "url": {
+          "raw": "{{FIREBASE_BASE_URL}}/accounts:signInWithPassword?key={{API_KEY}}",
+          "host": ["{{FIREBASE_BASE_URL}}"],
+          "path": ["accounts:signInWithPassword"],
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
-                  "",
-                  "pm.test('Inicio de sesión exitoso', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    pm.expect(json).to.have.property('idToken');",
-                  "    pm.expect(json).to.have.property('registered', true);",
-                  "    pm.expect(json).to.have.property('email');",
-                  "});"
-                ]
-              }
+              "key": "key",
+              "value": "{{API_KEY}}"
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"estudiante@epn.edu.ec\",\n  \"password\": \"MiPassword123\",\n  \"returnSecureToken\": true\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:signInWithPassword?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:signInWithPassword"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Inicia sesión con correo electrónico y contraseña.\n\n**Respuesta:**\n- `idToken`: Token JWT\n- `refreshToken`: Token para refrescar\n- `localId`: UID del usuario\n- `displayName`: Nombre del usuario (si se configuró)"
-          }
+          ]
         },
-        {
-          "name": "Recuperar Contraseña",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"requestType\": \"PASSWORD_RESET\",\n  \"email\": \"estudiante@epn.edu.ec\"\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:sendOobCode?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:sendOobCode"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Envía un correo electrónico con un enlace para restablecer la contraseña.\n\n**requestType:** `PASSWORD_RESET` para recuperación de contraseña.\n\n**Respuesta:**\n- `email`: Correo al que se envió\n- `oobLink`: Enlace de restablecimiento (depurado)"
-          }
-        },
-        {
-          "name": "Obtener Datos del Usuario",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idToken\": \"{{ID_TOKEN}}\"\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:lookup?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:lookup"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Obtiene los datos del perfil del usuario autenticado.\n\n**Respuesta:**\n- `users[].localId`: UID\n- `users[].email`: Correo\n- `users[].displayName`: Nombre\n- `users[].photoUrl`: Foto de perfil\n- `users[].emailVerified`: Si el correo está verificado\n- `users[].createdAt`: Fecha de creación"
-          }
-        },
-        {
-          "name": "Actualizar Perfil",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idToken\": \"{{ID_TOKEN}}\",\n  \"displayName\": \"Juan Pérez\",\n  \"photoUrl\": \"https://ejemplo.com/foto.jpg\",\n  \"deleteAttribute\": [],\n  \"returnSecureToken\": true\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:update?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:update"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Actualiza el perfil del usuario (nombre, foto).\n\n**Campos:**\n- `displayName`: Nombre a mostrar\n- `photoUrl`: URL de la foto de perfil\n- `deleteAttribute`: Atributos a eliminar (ej: `[\"PHOTO_URL\"]`)"
-          }
-        },
-        {
-          "name": "Cambiar Contraseña",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idToken\": \"{{ID_TOKEN}}\",\n  \"password\": \"NuevaPassword456\",\n  \"returnSecureToken\": true\n}"
-            },
-            "url": {
-              "raw": "{{FIREBASE_BASE_URL}}/accounts:update?key={{API_KEY}}",
-              "host": ["{{FIREBASE_BASE_URL}}"],
-              "path": ["accounts:update"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Cambia la contraseña del usuario autenticado.\n\n**Nota:** La nueva contraseña debe tener al menos 8 caracteres."
-          }
-        },
-        {
-          "name": "Refrescar Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"grant_type\": \"refresh_token\",\n  \"refresh_token\": \"{{REFRESH_TOKEN}}\"\n}"
-            },
-            "url": {
-              "raw": "https://securetoken.googleapis.com/v1/token?key={{API_KEY}}",
-              "host": ["https://securetoken.googleapis.com"],
-              "path": ["v1", "token"],
-              "query": [
-                {
-                  "key": "key",
-                  "value": "{{API_KEY}}"
-                }
-              ]
-            },
-            "description": "Refresca el token de autenticación cuando expira.\n\n**grant_type:** Siempre debe ser `refresh_token`.\n\n**Respuesta:**\n- `access_token`: Nuevo token JWT\n- `expires_in`: Tiempo de expiración en segundos"
-          }
-        }
-      ]
+        "description": "Inicia sesión con email y contraseña.\n\n## Request Body\n- `email` (requerido): Correo institucional\n- `password` (requerido): Contraseña\n- `returnSecureToken` (requerido): `true`\n\n## Respuesta\n- `idToken`: Token JWT\n- `refreshToken`: Token para refrescar\n- `localId`: UID del usuario\n- `displayName`: Nombre del usuario (si se configuró)\n- `registered`: `true` si la cuenta existe"
+      }
     },
     {
-      "name": "👤 Perfiles (Planificado)",
-      "description": "Endpoints para la gestión de perfiles de usuario.\n\n> **Nota:** Estos endpoints corresponden al backend futuro con Supabase + PostgreSQL. Actualmente no están implementados.",
-      "item": [
-        {
-          "name": "Obtener Perfil",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/profile/me",
-              "host": ["{{BASE_URL}}"],
-              "path": ["profile", "me"]
-            },
-            "description": "Obtiene el perfil completo del usuario autenticado.\n\n**Respuesta:**\n- `id`: UUID del usuario\n- `firstName`: Nombre\n- `lastName`: Apellido\n- `email`: Correo institucional\n- `faculty`: Facultad\n- `career`: Carrera\n- `interests`: Áreas de interés\n- `photoUrl`: Foto de perfil\n- `createdAt`: Fecha de registro"
+      "name": "Recuperar Contraseña",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestType\": \"PASSWORD_RESET\",\n  \"email\": \"estudiante@epn.edu.ec\"\n}"
         },
-        {
-          "name": "Actualizar Perfil",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Juan\",\n  \"lastName\": \"Pérez\",\n  \"faculty\": \"ESFOT\",\n  \"career\": \"Desarrollo de Aplicaciones Web\",\n  \"interests\": [\"Programación\", \"Bases de Datos\", \"Redes\"],\n  \"bio\": \"Estudiante de la EPN apasionado por el desarrollo web.\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/profile/me",
-              "host": ["{{BASE_URL}}"],
-              "path": ["profile", "me"]
-            },
-            "description": "Actualiza los datos del perfil del usuario autenticado.\n\n**Validaciones:**\n- `firstName` y `lastName`: mínimo 2 caracteres\n- `faculty`: debe ser una facultad válida de la EPN\n- `career`: debe existir en el catálogo"
-          }
+        "url": {
+          "raw": "{{FIREBASE_BASE_URL}}/accounts:sendOobCode?key={{API_KEY}}",
+          "host": ["{{FIREBASE_BASE_URL}}"],
+          "path": ["accounts:sendOobCode"],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{API_KEY}}"
+            }
+          ]
         },
-        {
-          "name": "Subir Foto de Perfil",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "photo",
-                  "type": "file",
-                  "src": ""
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/profile/me/photo",
-              "host": ["{{BASE_URL}}"],
-              "path": ["profile", "me", "photo"]
-            },
-            "description": "Sube o actualiza la foto de perfil del usuario.\n\n**Formatos aceptados:** JPG, PNG, WEBP\n**Tamaño máximo:** 5MB"
-          }
-        }
-      ]
+        "description": "Envía un correo con un enlace para restablecer la contraseña.\n\n## Request Body\n- `requestType` (requerido): `PASSWORD_RESET`\n- `email` (requerido): Correo institucional\n\n## Respuesta\n- `email`: Correo al que se envió\n- `oobLink`: Enlace de restablecimiento (solo en respuestas de depuración)"
+      }
     },
     {
-      "name": "🤝 Matching (Planificado)",
-      "description": "Endpoints para el algoritmo de matchmaking académico.\n\n> **Nota:** Estos endpoints corresponden al backend futuro con Supabase + PostgreSQL. Actualmente no están implementados.",
-      "item": [
-        {
-          "name": "Obtener Posibles Matches",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/matches/suggestions?limit=10",
-              "host": ["{{BASE_URL}}"],
-              "path": ["matches", "suggestions"],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            },
-            "description": "Obtiene una lista de posibles matches basados en afinidad académica.\n\n**Criterios de matching:**\n- Misma facultad y carrera\n- Áreas de interés similares\n- Disponibilidad para mentoría/estudio\n\n**Query params:**\n- `limit`: número de sugerencias (default: 10)\n- `faculty`: filtrar por facultad (opcional)"
+      "name": "Obtener Datos del Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idToken\": \"{{ID_TOKEN}}\"\n}"
         },
-        {
-          "name": "Dar Like / Pass",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"targetUserId\": \"uuid-del-usuario\",\n  \"action\": \"like\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/matches/rate",
-              "host": ["{{BASE_URL}}"],
-              "path": ["matches", "rate"]
-            },
-            "description": "Envía un like o pass a otro usuario.\n\n**action:** `like` | `pass`\n\nSi ambos usuarios se dan like, se crea un **match** automáticamente."
-          }
+        "url": {
+          "raw": "{{FIREBASE_BASE_URL}}/accounts:lookup?key={{API_KEY}}",
+          "host": ["{{FIREBASE_BASE_URL}}"],
+          "path": ["accounts:lookup"],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{API_KEY}}"
+            }
+          ]
         },
-        {
-          "name": "Listar Matches Activos",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/matches",
-              "host": ["{{BASE_URL}}"],
-              "path": ["matches"]
-            },
-            "description": "Obtiene la lista de usuarios con los que se ha hecho match.\n\n**Respuesta:**\n- `id`: ID del match\n- `user`: datos del otro usuario\n- `matchedAt`: fecha del match\n- `lastMessage`: último mensaje (si aplica)"
-          }
-        }
-      ]
+        "description": "Obtiene los datos del perfil del usuario autenticado.\n\n## Request Body\n- `idToken` (requerido): Token JWT obtenido al iniciar sesión\n\n## Respuesta\n- `users[].localId`: UID\n- `users[].email`: Correo\n- `users[].displayName`: Nombre\n- `users[].photoUrl`: Foto de perfil\n- `users[].emailVerified`: Si el correo está verificado\n- `users[].createdAt`: Fecha de creación"
+      }
     },
     {
-      "name": "💬 Mensajería (Planificado)",
-      "description": "Endpoints para el sistema de mensajería en tiempo real.\n\n> **Nota:** Estos endpoints corresponden al backend futuro con Supabase + PostgreSQL y Supabase Realtime. Actualmente no están implementados.",
-      "item": [
-        {
-          "name": "Enviar Mensaje",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"receiverId\": \"uuid-del-destinatario\",\n  \"content\": \"Hola, ¿te interesa formar un grupo de estudio para la materia de Desarrollo Web?\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/messages",
-              "host": ["{{BASE_URL}}"],
-              "path": ["messages"]
-            },
-            "description": "Envía un mensaje a un usuario con el que se tenga match.\n\n**Validaciones:**\n- Solo se puede enviar mensajes a usuarios con match activo\n- El mensaje no puede estar vacío"
+      "name": "Actualizar Perfil",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idToken\": \"{{ID_TOKEN}}\",\n  \"displayName\": \"Juan Pérez\",\n  \"returnSecureToken\": true\n}"
         },
-        {
-          "name": "Obtener Conversación",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/messages/:userId?page=1&limit=50",
-              "host": ["{{BASE_URL}}"],
-              "path": ["messages", ":userId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "50"
-                }
-              ]
-            },
-            "description": "Obtiene el historial de mensajes con un usuario específico.\n\n**Path params:**\n- `:userId`: ID del otro usuario\n\n**Query params:**\n- `page`: número de página\n- `limit`: mensajes por página"
-          }
+        "url": {
+          "raw": "{{FIREBASE_BASE_URL}}/accounts:update?key={{API_KEY}}",
+          "host": ["{{FIREBASE_BASE_URL}}"],
+          "path": ["accounts:update"],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{API_KEY}}"
+            }
+          ]
         },
-        {
-          "name": "Marcar como Leído",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"messageIds\": [\"uuid-mensaje-1\", \"uuid-mensaje-2\"]\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/messages/read",
-              "host": ["{{BASE_URL}}"],
-              "path": ["messages", "read"]
-            },
-            "description": "Marca uno o más mensajes como leídos."
-          }
-        }
-      ]
+        "description": "Actualiza el perfil del usuario (nombre, foto).\n\n## Request Body\n- `idToken` (requerido): Token JWT\n- `displayName` (opcional): Nuevo nombre a mostrar\n- `photoUrl` (opcional): URL de la foto de perfil\n- `returnSecureToken` (opcional): `true` para obtener un nuevo token"
+      }
     },
     {
-      "name": "⚙️ Administración (Planificado)",
-      "description": "Endpoints para la administración del sistema (solo rol Administrador).\n\n> **Nota:** Estos endpoints corresponden al backend futuro con Supabase + PostgreSQL. Actualmente no están implementados.",
-      "item": [
-        {
-          "name": "Listar Usuarios",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/admin/users?page=1&limit=20",
-              "host": ["{{BASE_URL}}"],
-              "path": ["admin", "users"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "20"
-                }
-              ]
-            },
-            "description": "Obtiene la lista de usuarios registrados en la plataforma.\n\n**Requiere rol:** Administrador\n\n**Query params:**\n- `page`: número de página\n- `limit`: usuarios por página\n- `search`: búsqueda por nombre o email (opcional)"
+      "name": "Refrescar Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"grant_type\": \"refresh_token\",\n  \"refresh_token\": \"{{REFRESH_TOKEN}}\"\n}"
         },
-        {
-          "name": "Bloquear Usuario",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"uuid-del-usuario\",\n  \"reason\": \"Comportamiento inapropiado\",\n  \"duration\": \"7d\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/admin/users/block",
-              "host": ["{{BASE_URL}}"],
-              "path": ["admin", "users", "block"]
-            },
-            "description": "Bloquea temporal o permanentemente a un usuario.\n\n**Requiere rol:** Administrador\n\n**duration:** `7d` (7 días), `30d` (30 días), `permanent` (permanente)"
-          }
+        "url": {
+          "raw": "https://securetoken.googleapis.com/v1/token?key={{API_KEY}}",
+          "host": ["https://securetoken.googleapis.com"],
+          "path": ["v1", "token"],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{API_KEY}}"
+            }
+          ]
         },
-        {
-          "name": "Gestionar Denuncias",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/admin/reports?status=pending",
-              "host": ["{{BASE_URL}}"],
-              "path": ["admin", "reports"],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "pending"
-                }
-              ]
-            },
-            "description": "Obtiene las denuncias de la comunidad para moderación.\n\n**Requiere rol:** Administrador\n\n**Query params:**\n- `status`: `pending` | `resolved` | `dismissed`"
-          }
-        },
-        {
-          "name": "Configurar Catálogo",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ID_TOKEN}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"faculties\": [\n    {\n      \"name\": \"ESFOT\",\n      \"careers\": [\"Desarrollo de Aplicaciones Web\", \"Redes y Telecomunicaciones\", \"Mecánica Industrial\"]\n    }\n  ],\n  \"interestAreas\": [\"Programación\", \"Bases de Datos\", \"Redes\", \"Inteligencia Artificial\", \"Ciberseguridad\"]\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/admin/catalog",
-              "host": ["{{BASE_URL}}"],
-              "path": ["admin", "catalog"]
-            },
-            "description": "Actualiza el catálogo de facultades, carreras y áreas de interés.\n\n**Requiere rol:** Administrador"
-          }
-        }
-      ]
+        "description": "Refresca el token JWT cuando expira.\n\n## Request Body\n- `grant_type` (requerido): `refresh_token`\n- `refresh_token` (requerido): Token de refresco obtenido en el login\n\n## Respuesta\n- `access_token`: Nuevo token JWT\n- `expires_in`: Tiempo de expiración en segundos\n- `refresh_token`: Nuevo token de refresco"
+      }
     }
   ]
 }
