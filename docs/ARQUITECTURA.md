@@ -8,11 +8,11 @@ PoliTinder es una SPA (Single Page Application) construida en React 19 con TypeS
 ┌──────────────────────────────────────────────────────────────────┐
 │                       CLIENTE (React SPA)                        │
 │                                                                  │
-│  ┌───────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
+│  ┌───────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐   │
 │  │   Pages   │  │  Hooks   │  │ Services │  │ Components (UI) │  │
 │  │ (Routing) │→ │  (SRP)   │→ │ (Auth)   │→ │  shadcn/ui +    │  │
-│  └───────────┘  └──────────┘  └──────────┘  │  PostCard/       │  │
-│       ↓                                      │  StoryViewer    │  │
+│  └───────────┘  └──────────┘  └──────────┘  │  PostCard/      │  │
+│       ↓                                      │  StoryViewer   │  │
 │  ┌──────────────────────────────────────┐    └────────────────┘  │
 │  │     Servicios de Datos (Supabase)    │                        │
 │  │  profiles  │  posts  │  stories      │                        │
