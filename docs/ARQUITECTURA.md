@@ -2,67 +2,82 @@
 
 ## Visión General
 
-PoliTinder sigue una arquitectura **cliente-servidor** con un frontend SPA (Single Page Application) construido en React y un backend actualmente apoyado en Firebase como Backend-as-a-Service (BaaS). La comunicación entre cliente y servicios externos se realiza mediante las SDKs oficiales de Firebase.
+PoliTinder es una SPA (Single Page Application) construida en React 19 con TypeScript. La aplicación se apoya en dos Backend-as-a-Service: **Firebase Auth** para autenticación y **Supabase** para base de datos (PostgreSQL) y almacenamiento de archivos (Storage).
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      CLIENTE (React SPA)                    │
-│                                                             │
-│  ┌───────────┐  ┌──────────┐  ┌──────────┐  ┌───────────┐   │
-│  │   Pages   │  │  Hooks   │  │ Services │  │   Storage │   │
-│  │ (Routing) │→ │  (SRP)   │→ │ (Auth)   │→ │ (Adapter) │   │
-│  └───────────┘  └──────────┘  └──────────┘  └───────────┘   │
-│       ↓                                                     │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              UI Components (shadcn/ui)               │   │
-│  └──────────────────────────────────────────────────────┘   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │  Firebase   │
-                    │    Auth     │
-                    └─────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                       CLIENTE (React SPA)                        │
+│                                                                  │
+│  ┌───────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
+│  │   Pages   │  │  Hooks   │  │ Services │  │ Components (UI) │  │
+│  │ (Routing) │→ │  (SRP)   │→ │ (Auth)   │→ │  shadcn/ui +    │  │
+│  └───────────┘  └──────────┘  └──────────┘  │  PostCard/       │  │
+│       ↓                                      │  StoryViewer    │  │
+│  ┌──────────────────────────────────────┐    └────────────────┘  │
+│  │     Servicios de Datos (Supabase)    │                        │
+│  │  profiles  │  posts  │  stories      │                        │
+│  └──────────────────────────────────────┘                        │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+          ┌────────────┴────────────┐
+          │  Firebase Auth          │
+          │  Supabase (DB + Storage)│
+          └─────────────────────────┘
 ```
 
 ## Capas de la Aplicación
 
 ### 1. Capa de Presentación (Pages)
 
-Las páginas son componentes de alto nivel que orquestan la interacción entre el contexto de autenticación y los componentes UI. Cada página gestiona su propio estado de alertas y delega la lógica de formularios a hooks personalizados.
+Las páginas son componentes de alto nivel que orquestan la interacción entre los servicios y los componentes UI.
 
-| Página           | Ruta               | Propósito                            |
-| ---------------- | ------------------ | ------------------------------------ |
-| `Login`          | `/login`           | Autenticación de usuarios existentes |
-| `Register`       | `/register`        | Registro de nuevos usuarios          |
-| `ForgotPassword` | `/forgot-password` | Recuperación de contraseña           |
-| `Terms`          | `/terms`           | Términos y condiciones legales       |
-| `Privacy`        | `/privacy`         | Política de privacidad               |
+| Página           | Ruta               | Propósito                                  |
+| ---------------- | ------------------ | ------------------------------------------ |
+| `Login`          | `/login`           | Autenticación de usuarios existentes       |
+| `Register`       | `/register`        | Registro de nuevos usuarios                |
+| `ForgotPassword` | `/forgot-password` | Recuperación de contraseña                 |
+| `Onboarding`     | `/onboarding`      | Formulario multi-paso de datos iniciales   |
+| `Welcome`        | `/welcome`         | Tutorial post-onboarding                   |
+| `Feed`           | `/feed`            | Inicio: stories + publicaciones del feed   |
+| `Profile`        | `/profile`         | Perfil del usuario con sus publicaciones   |
+| `Matches`        | `/matches`         | Cards de potenciales matches (Tinder-like) |
+| `Messages`       | `/messages`        | Bandeja de mensajes (no implementado)      |
+| `Terms`          | `/terms`           | Términos y condiciones legales             |
+| `Privacy`        | `/privacy`         | Política de privacidad                     |
 
 ### 2. Capa de Lógica de Formularios (Hooks)
 
-Cada hook sigue el **Principio de Responsabilidad Única (SRP)**, encapsulando la lógica completa de un formulario:
+Cada hook sigue el **Principio de Responsabilidad Única (SRP)**:
 
 - `useLoginForm`: Validación, estado de carga, visibilidad de contraseña y envío.
 - `useRegisterForm`: Validación, confirmación de contraseña, términos y registro.
 - `useForgotPasswordForm`: Validación de correo institucional y envío de restablecimiento.
+- `useOnboardingForm`: Formulario multi-paso con validación por paso.
 
 ### 3. Capa de Servicios
 
-#### AuthContext
+#### AuthContext (Firebase Auth)
 
-El contexto de autenticación (`AuthContext`) expone las siguientes funciones:
+El contexto de autenticación expone: `login`, `register`, `loginWithMicrosoft`, `resetPassword`, `logout`. Los errores de Firebase se mapean a mensajes legibles en español mediante `mapFirebaseError()`.
 
-| Función                                          | Descripción                                       |
-| ------------------------------------------------ | ------------------------------------------------- |
-| `login(email, password)`                         | Inicia sesión con email y contraseña              |
-| `register(firstName, lastName, email, password)` | Crea una cuenta nueva                             |
-| `loginWithMicrosoft()`                           | Autenticación mediante Microsoft OAuth            |
-| `resetPassword(email)`                           | Envía un enlace de restablecimiento               |
-| `logout()`                                       | Cierra la sesión y limpia el almacenamiento local |
+#### Servicios de Datos (Supabase)
 
-Los errores de Firebase se mapean a mensajes legibles en español mediante `mapFirebaseError()`.
+| Servicio    | Archivo               | Funciones principales                                                                                      |
+| ----------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **profile** | `services/profile.ts` | `createProfile`, `getProfile`, `updateProfile`, `getPotentialMatches`, `mapOnboardingToProfile`            |
+| **posts**   | `services/posts.ts`   | `createPost`, `getUserPosts`, `getFeedPosts`, `likePost`, `unlikePost`, `getPostComments`, `createComment` |
+| **stories** | `services/stories.ts` | `createStory`, `getUserStories`, `getActiveStories`, `deleteStory`                                         |
 
-#### Capa de Persistencia (Storage)
+#### Almacenamiento (Supabase Storage)
+
+| Bucket    | Propósito                 | Upload helper        |
+| --------- | ------------------------- | -------------------- |
+| `avatars` | Fotos de perfil           | `uploadAvatar()`     |
+| `banners` | Banners de perfil         | `uploadBanner()`     |
+| `posts`   | Imágenes en publicaciones | `uploadPostImage()`  |
+| `stories` | Medios para historias     | `uploadStoryMedia()` |
+
+#### Capa de Persistencia Local (Storage Adapter)
 
 Implementa los principios **ISP** y **DIP** mediante el patrón **Adapter**:
 
@@ -72,29 +87,116 @@ IStorageAdapter (interfaz abstracta)
 LocalStorageAdapter (implementación concreta)
     ↑
 ├── TokenStorage (implementa ITokenStorage)
-└── UserStorage (implementa IUserStorage)
+├── UserStorage (implementa IUserStorage)
+└── OnboardingStorage (implementa IOnboardingStorage)
 ```
 
-- **IStorageAdapter**: Define las operaciones básicas de almacenamiento (getItem, setItem, removeItem, clear).
-- **LocalStorageAdapter**: Implementa `IStorageAdapter` usando la API de `localStorage`.
-- **TokenStorage**: Persiste el token JWT de autenticación.
-- **UserStorage**: Persiste los datos del usuario autenticado (serializados como JSON).
+### 4. Componentes de Post e Historias
 
-La función `createStorageServices()` actúa como **Factory** para crear las instencias conectadas.
+#### PostCard (`components/post/PostCard.tsx`)
 
-### 4. Capa de Validación (Schemas)
+Componente reutilizable que muestra una publicación con:
 
-Los esquemas de Zod definen las reglas de validación para cada formulario:
+- Avatar, nickname, carrera y tiempo desde la creación
+- Contenido de texto e imagen
+- Botones de: Like (corazón), Comentar, Guardar (bookmark), Compartir
+- Sección expandible de comentarios (`PostComments`)
+
+#### PostComments (`components/post/PostComments.tsx`)
+
+Sección de comentarios dentro de un PostCard:
+
+- Lista de comentarios con avatar, nickname y contenido
+- Input para escribir nuevo comentario (Enter para enviar)
+- Actualización en tiempo real del contador de comentarios
+
+#### StoriesBar (`components/post/StoriesBar.tsx`)
+
+Barra horizontal de historias en el Feed:
+
+- Botón "Tu historia" para subir nueva historia (imagen/video)
+- Círculos con gradiente para cada usuario con historias activas
+- Las historias expiran automáticamente a las 24 horas
+
+#### StoryViewer (`components/post/StoryViewer.tsx`)
+
+Visor de historias a pantalla completa:
+
+- Navegación con tap/click (izquierda/derecha), teclado, gestos
+- Barra de progreso para cada historia
+- Soporte para imágenes y videos
+- Botón de mute/unmute para videos
+- Pausa al mantener presionado
+
+### 5. Esquema de Base de Datos (Supabase PostgreSQL)
+
+#### Tabla `profiles`
+
+| Columna        | Tipo          | Descripción                      |
+| -------------- | ------------- | -------------------------------- |
+| `id`           | `TEXT`        | Firebase UID (PK)                |
+| `nickname`     | `TEXT`        | Nombre de usuario (2-30 chars)   |
+| `avatar_url`   | `TEXT?`       | URL del avatar                   |
+| `banner_url`   | `TEXT?`       | URL del banner                   |
+| `faculty`      | `TEXT`        | Facultad                         |
+| `career`       | `TEXT`        | Carrera                          |
+| `semester`     | `TEXT?`       | Semestre actual                  |
+| `looking_for`  | `TEXT[]`      | Objetivos (estudio, mentoría...) |
+| `bio`          | `TEXT?`       | Biografía (≤280 chars)           |
+| `study_styles` | `TEXT[]`      | Estilos de estudio               |
+| `interests`    | `TEXT[]`      | Intereses                        |
+| `created_at`   | `TIMESTAMPTZ` | Fecha de creación                |
+| `updated_at`   | `TIMESTAMPTZ` | Fecha de actualización           |
+
+#### Tabla `posts`
+
+| Columna      | Tipo          | Descripción            |
+| ------------ | ------------- | ---------------------- |
+| `id`         | `UUID`        | PK (auto-generado)     |
+| `user_id`    | `TEXT`        | FK → profiles(id)      |
+| `content`    | `TEXT`        | Contenido (≤500 chars) |
+| `image_url`  | `TEXT?`       | URL de imagen adjunta  |
+| `created_at` | `TIMESTAMPTZ` | Fecha de creación      |
+| `updated_at` | `TIMESTAMPTZ` | Fecha de actualización |
+
+#### Tabla `post_likes`
+
+| Columna                           | Tipo          | Descripción       |
+| --------------------------------- | ------------- | ----------------- |
+| `user_id`                         | `TEXT`        | FK → profiles(id) |
+| `post_id`                         | `UUID`        | FK → posts(id)    |
+| `created_at`                      | `TIMESTAMPTZ` | Fecha del like    |
+| (PK compuesta: user_id + post_id) |
+
+#### Tabla `post_comments`
+
+| Columna      | Tipo          | Descripción             |
+| ------------ | ------------- | ----------------------- |
+| `id`         | `UUID`        | PK (auto-generado)      |
+| `post_id`    | `UUID`        | FK → posts(id)          |
+| `user_id`    | `TEXT`        | FK → profiles(id)       |
+| `content`    | `TEXT`        | Contenido (1-500 chars) |
+| `created_at` | `TIMESTAMPTZ` | Fecha del comentario    |
+
+#### Tabla `stories`
+
+| Columna      | Tipo          | Descripción                  |
+| ------------ | ------------- | ---------------------------- |
+| `id`         | `UUID`        | PK (auto-generado)           |
+| `user_id`    | `TEXT`        | FK → profiles(id)            |
+| `media_url`  | `TEXT`        | URL del medio (imagen/video) |
+| `type`       | `TEXT`        | 'image' o 'video'            |
+| `created_at` | `TIMESTAMPTZ` | Fecha de creación            |
+| `expires_at` | `TIMESTAMPTZ` | Expira a las 24 horas        |
+
+### 6. Validación (Schemas Zod)
 
 | Esquema                | Reglas                                                                                |
 | ---------------------- | ------------------------------------------------------------------------------------- |
 | `loginSchema`          | Email válido, contraseña ≥ 8 caracteres                                               |
 | `registerSchema`       | Nombres ≥ 2 car., email, contraseña ≥ 8, confirmación coincidente, términos aceptados |
 | `forgotPasswordSchema` | Email con dominio `@epn.edu.ec`                                                       |
-
-### 5. Configuración Centralizada (Theme)
-
-El archivo `config/theme.ts` centraliza los valores de diseño (colores, animaciones, estilos de formularios) siguiendo el **Principio Abierto/Cerrado (OCP)**. Esto permite modificar la apariencia global sin alterar los componentes.
+| `onboardingSchema`     | 3 sub-esquemas: identity, academic, vibe                                              |
 
 ## Flujo de Autenticación
 
@@ -110,22 +212,191 @@ El archivo `config/theme.ts` centraliza los valores de diseño (colores, animaci
 9. UI se re-renderiza con isAuthenticated = true
 ```
 
-## Manejo de Errores
+## Flujo de Publicaciones
 
-Los errores de Firebase se traducen a mensajes en español en `mapFirebaseError()`:
+```
+1. Usuario escribe contenido + opcional imagen
+2. Si hay imagen: uploadPostImage() → Supabase Storage (bucket "posts")
+3. createPost() → inserta en tabla "posts"
+4. PostCard muestra la publicación con:
+   - Like: likePost() / unlikePost() → tabla "post_likes"
+   - Comentario: createComment() → tabla "post_comments"
+   - Feed: getFeedPosts() con JOIN a profiles + conteos
+```
 
-| Código Firebase               | Mensaje                                           |
-| ----------------------------- | ------------------------------------------------- |
-| `auth/user-not-found`         | "No se encontró una cuenta con este correo."      |
-| `auth/wrong-password`         | "Contraseña incorrecta."                          |
-| `auth/email-already-in-use`   | "Este correo ya está registrado."                 |
-| `auth/weak-password`          | "La contraseña debe tener al menos 6 caracteres." |
-| `auth/too-many-requests`      | "Demasiados intentos. Intenta más tarde."         |
-| `auth/network-request-failed` | "Error de conexión. Verifica tu internet."        |
+## Flujo de Historias
+
+```
+1. Usuario sube imagen/video → uploadStoryMedia() → Supabase Storage (bucket "stories")
+2. createStory() → inserta en tabla "stories" con expires_at = NOW + 24h
+3. StoriesBar muestra getActiveStories() (solo no expiradas)
+4. StoryViewer reproduce en pantalla completa
+5. deleteStory() para eliminar manualmente
+```
+
+### 7. Estructura del Proyecto
+
+```
+PoliTinder/
+├── client/                          # Frontend React SPA
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── common/              # Componentes compartidos
+│   │   │   ├── layouts/             # Sidebar, AppLayout
+│   │   │   ├── onboarding/          # Componentes del onboarding
+│   │   │   ├── post/                # PostCard, PostComments, StoriesBar, StoryViewer
+│   │   │   ├── profile/             # EditProfile
+│   │   │   └── ui/                  # Button, Input, Combobox, etc.
+│   │   ├── contexts/                # AuthContext (Firebase)
+│   │   ├── data/                    # Datos estáticos (facultades, carreras)
+│   │   ├── hooks/                   # useLoginForm, useRegisterForm, etc.
+│   │   ├── pages/                   # Login, Register, Feed, Profile, etc.
+│   │   ├── schemas/                 # Zod validation schemas
+│   │   ├── services/
+│   │   │   ├── storage/             # TokenStorage, UserStorage, OnboardingStorage
+│   │   │   ├── firebase.ts          # Config Firebase
+│   │   │   ├── supabase.ts          # Cliente Supabase + upload helpers
+│   │   │   ├── profile.ts           # CRUD perfiles
+│   │   │   ├── posts.ts             # CRUD posts + likes + comentarios
+│   │   │   └── stories.ts           # CRUD stories
+│   │   ├── test/                    # Tests unitarios (Vitest)
+│   │   ├── types/                   # Interfaces TypeScript
+│   │   └── App.tsx                  # Router principal
+│   ├── .env                         # Variables de entorno
+│   └── package.json
+├── supabase/
+│   └── migrations/                  # Migraciones SQL (001 → 004)
+└── docs/
+    ├── ARQUITECTURA.md              # Este documento
+    └── CONTRIBUIR.md                # Guía de contribución
+```
+
+### 8. Tecnologías
+
+| Tecnología            | Propósito                         |
+| --------------------- | --------------------------------- |
+| React 19              | UI SPA                            |
+| TypeScript            | Tipado estático                   |
+| Vite                  | Build tool                        |
+| Tailwind CSS          | Estilos utilitarios               |
+| Framer Motion         | Animaciones                       |
+| React Router DOM v7   | Enrutamiento                      |
+| Firebase Auth         | Autenticación (email + Microsoft) |
+| Supabase (PostgreSQL) | Base de datos                     |
+| Supabase Storage      | Almacenamiento de archivos        |
+| Zod                   | Validación de formularios         |
+| Vitest                | Testing                           |
+| Lucide React          | Iconos                            |
+
+### 9. Configuración del Entorno
+
+Crear archivo `client/.env` con:
+
+```env
+VITE_FIREBASE_API_KEY=xxx
+VITE_FIREBASE_AUTH_DOMAIN=xxx
+VITE_FIREBASE_PROJECT_ID=xxx
+VITE_FIREBASE_STORAGE_BUCKET=xxx
+VITE_FIREBASE_MESSAGING_SENDER_ID=xxx
+VITE_FIREBASE_APP_ID=xxx
+VITE_FIREBASE_MEASUREMENT_ID=xxx
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=xxx
+```
+
+### 10. Instalación y Ejecución
+
+```bash
+cd client
+npm install
+npm run dev        # Desarrollo (http://localhost:5173)
+npm run build      # Producción
+npm run test       # Tests
+npm run lint       # Verificación de código
+```
+
+## Planificación por Sprints
+
+### Sprint 1: Autenticación y Onboarding (Completado)
+
+**Objetivo**: Implementar registro, inicio de sesión, recuperación de contraseña y formulario de datos iniciales.
+
+| Tarea                                                                  | Responsable       | Estado |
+| ---------------------------------------------------------------------- | ----------------- | ------ |
+| Configurar Firebase Auth (email + Microsoft OAuth)                     | Jennyfer Guayanay | ✅     |
+| Crear capa de persistencia local (TokenStorage, UserStorage)           | Jennyfer Guayanay | ✅     |
+| Implementar AuthContext con login, register, logout, resetPassword     | Michael Carrillo  | ✅     |
+| Crear páginas Login, Register, ForgotPassword                          | Michael Carrillo  | ✅     |
+| Implementar hooks useLoginForm, useRegisterForm, useForgotPasswordForm | Michael Carrillo  | ✅     |
+| Validación con Zod (loginSchema, registerSchema, forgotPasswordSchema) | Michael Carrillo  | ✅     |
+| Migración 001: tabla profiles                                          | Jennyfer Guayanay | ✅     |
+| Página de Onboarding multi-paso con datos académicos                   | Michael Carrillo  | ✅     |
+| Página Welcome post-onboarding con tutorial                            | Michael Carrillo  | ✅     |
+| Manejo de errores de Firebase mapeados a español                       | Michael Carrillo  | ✅     |
+
+### Sprint 2: Perfil y Matching (Completado)
+
+**Objetivo**: Mostrar perfil de usuario, permitir edición y explorar potenciales matches.
+
+| Tarea                                                         | Responsable       | Estado |
+| ------------------------------------------------------------- | ----------------- | ------ |
+| Migración 002: date_of_birth y semester como texto            | Jennyfer Guayanay | ✅     |
+| Servicio profile.ts: createProfile, getProfile, updateProfile | Jennyfer Guayanay | ✅     |
+| Página Profile con header, banner, avatar, ADN académico      | Michael Carrillo  | ✅     |
+| Componente EditProfile para editar datos                      | Michael Carrillo  | ✅     |
+| Página Matches con cards tipo Tinder                          | Michael Carrillo  | ✅     |
+| Servicio getPotentialMatches con filtros                      | Jennyfer Guayanay | ✅     |
+| Hook useOnboardingForm con validación por paso                | Michael Carrillo  | ✅     |
+
+### Sprint 3: Publicaciones e Historias (En Progreso)
+
+**Objetivo**: Permitir crear publicaciones con imágenes, dar like, comentar, y compartir historias temporales.
+
+| Tarea                                                         | Responsable       | Estado |
+| ------------------------------------------------------------- | ----------------- | ------ |
+| Migración 003: tabla posts + banner_url                       | Jennyfer Guayanay | ✅     |
+| Migración 004: post_likes, post_comments, stories             | Jennyfer Guayanay | ✅     |
+| Servicio posts.ts: CRUD posts + likes + comentarios           | Michael Carrillo  | ✅     |
+| Servicio stories.ts: CRUD stories                             | Michael Carrillo  | ✅     |
+| Componente PostCard con like, comentar, bookmark, compartir   | Michael Carrillo  | ✅     |
+| Componente PostComments con lista y creación de comentarios   | Michael Carrillo  | ✅     |
+| Componente StoriesBar con subida y visualización              | Michael Carrillo  | ⬜     |
+| Componente StoryViewer a pantalla completa                    | Michael Carrillo  | ✅     |
+| Buckets de Storage: posts, stories (crear en dashboard)       | Jennyfer Guayanay | ⬜     |
+| Feed con stories + publicaciones de todos los usuarios        | Michael Carrillo  | ✅     |
+| Correo de verificación al registrarse (sendEmailVerification) | Michael Carrillo  | ✅     |
+
+### Sprint 4: Mensajería y Notificaciones (Planificado)
+
+**Objetivo**: Implementar chat en tiempo real y notificaciones.
+
+| Tarea                                                        | Responsable       | Estado |
+| ------------------------------------------------------------ | ----------------- | ------ |
+| Diseñar tabla messages en Supabase                           | Jennyfer Guayanay | ⬜     |
+| Servicio messages.ts con CRUD y suscripciones en tiempo real | Jennyfer Guayanay | ⬜     |
+| Página Messages con lista de chats                           | Michael Carrillo  | ⬜     |
+| Componente ChatView con burbujas de mensaje                  | Michael Carrillo  | ⬜     |
+| Indicador de "escribiendo..." y mensajes no leídos           | Michael Carrillo  | ⬜     |
+
+### Sprint 5: Pulido y Despliegue (Planificado)
+
+**Objetivo**: Mejorar UX, rendimiento y preparar para producción.
+
+| Tarea                                                  | Responsable       | Estado |
+| ------------------------------------------------------ | ----------------- | ------ |
+| Diseño responsive para todas las páginas               | Michael Carrillo  | ⬜     |
+| Pantallas de carga y estados vacíos/error consistentes | Michael Carrillo  | ⬜     |
+| Políticas RLS en Supabase para seguridad               | Jennyfer Guayanay | ⬜     |
+| Índices de rendimiento en consultas frecuentes         | Jennyfer Guayanay | ⬜     |
+| Configuración de despliegue (Vercel / Netlify)         | Jennyfer Guayanay | ⬜     |
+| Tests de integración para flujos críticos              | Michael Carrillo  | ⬜     |
+
+---
 
 ## Seguridad
 
-- Las contraseñas se manejan exclusivamente a través de Firebase Auth; nunca se almacenan en texto plano en el cliente.
-- Los tokens JWT se almacenan en `localStorage` mediante una capa de abstracción que facilita migrar a almacenamiento seguro (cookies HttpOnly, Secure).
-- La validación del dominio `@epn.edu.ec` se realiza tanto en el cliente (Zod) como en el servidor (Firebase).
-- Toda la comunicación con Firebase está cifrada mediante TLS/SSL.
+- Las contraseñas se manejan exclusivamente a través de Firebase Auth.
+- Los tokens JWT se almacenan en localStorage mediante una capa de abstracción.
+- La validación del dominio `@epn.edu.ec` se realiza con Zod en el cliente.
+- Toda la comunicación con Firebase y Supabase está cifrada mediante TLS/SSL.
+- RLS (Row Level Security) desactivado en producción por compatibilidad con Firebase Auth.

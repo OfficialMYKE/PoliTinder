@@ -7,6 +7,8 @@ import {
   signOut,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
+  fetchSignInMethodsForEmail,
 } from "firebase/auth";
 import { IAuthUser, IAuthState, IAuthError } from "../types/auth";
 import { ITokenStorage } from "../services/storage/ITokenStorage";
@@ -143,6 +145,12 @@ export function AuthProvider({
           displayName: `${credentials.firstName} ${credentials.lastName}`,
         });
 
+        try {
+          await sendEmailVerification(fbUser);
+        } catch {
+          console.warn("No se pudo enviar el correo de verificacion");
+        }
+
         const token = await fbUser.getIdToken();
         const user: IAuthUser = {
           id: fbUser.uid,
@@ -221,12 +229,9 @@ export function AuthProvider({
 
   const checkEmailExists = useCallback(async (email: string): Promise<boolean> => {
     try {
-      await signInWithEmailAndPassword(auth, email, "POLITINDER_CHECK_EXISTS");
-      return true;
-    } catch (error: any) {
-      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
-        return true;
-      }
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      return methods.length > 0;
+    } catch {
       return false;
     }
   }, []);

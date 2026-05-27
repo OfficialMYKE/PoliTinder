@@ -189,7 +189,7 @@ function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
                 />
                 <Input
                   placeholder="Correo institucional"
-                  autoComplete="off"
+                  autoComplete="email"
                   {...field}
                   disabled={isLoading}
                   className={`bg-white pl-12 h-12 rounded-full border focus-visible:ring-1 focus-visible:ring-offset-0 transition-colors ${

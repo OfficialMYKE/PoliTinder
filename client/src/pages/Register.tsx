@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { RegisterFormSplitScreen } from "../components/ui/register";
 import { useAuth } from "../contexts/AuthContext";
+import { createStorageServices } from "../services/storage";
+import registerImage from "../assets/login.webp";
 
-/**
- * Página de registro de nuevos usuarios
- * Gestiona el estado de alertas y delega el renderizado al componente RegisterFormSplitScreen
- */
 export default function Register() {
+  const navigate = useNavigate();
   const { register, loginWithMicrosoft } = useAuth();
+  const { onboardingStorage } = createStorageServices();
   const [alert, setAlert] = useState<{
     type: "error" | "success";
     title: string;
@@ -17,17 +18,14 @@ export default function Register() {
   const handleRegister = async (data: any) => {
     setAlert(null);
     try {
+      onboardingStorage.reset();
       await register({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
       });
-      setAlert({
-        type: "success",
-        title: "Cuenta creada",
-        message: "Tu cuenta se ha creado exitosamente. ¡Bienvenido a PoliTinder!",
-      });
+      navigate("/", { replace: true });
     } catch (error: any) {
       setAlert({
         type: "error",
@@ -41,11 +39,7 @@ export default function Register() {
     setAlert(null);
     try {
       await loginWithMicrosoft();
-      setAlert({
-        type: "success",
-        title: "Registro exitoso",
-        message: "Tu cuenta se ha creado con Microsoft.",
-      });
+      navigate("/", { replace: true });
     } catch (error: any) {
       setAlert({
         type: "error",
@@ -59,7 +53,7 @@ export default function Register() {
     <RegisterFormSplitScreen
       title="Crear cuenta"
       description="Únete a la comunidad de PoliTinder y encuentra tu grupo de estudio."
-      imageSrc="https://media.istockphoto.com/id/1588289974/es/foto/grupo-multirracial-de-estudiantes-felices-en-la-sala-de-conferencias-mirando-a-la-c%C3%A1mara.jpg?b=1&s=1024x1024&w=0&k=20&c=JxjVBKNMNgX8APVq9bPE91V6iOTTghIgmJIcwreFI4Y="
+      imageSrc={registerImage}
       imageAlt="Estudiantes EPN"
       onSubmit={handleRegister}
       loginHref="/login"

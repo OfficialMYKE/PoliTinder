@@ -16,6 +16,7 @@ import { AuthFooter } from "../components/ui/footer";
 import { useForgotPasswordForm } from "../hooks/useForgotPasswordForm";
 import { useAuth } from "../contexts/AuthContext";
 import { theme } from "../config/theme";
+import forgotImage from "../assets/login.webp";
 
 /**
  * Página de recuperación de contraseña
@@ -59,7 +60,7 @@ export default function ForgotPassword() {
       {/* Imagen decorativa con gradiente — oculta en dispositivos móviles */}
       <div className="relative hidden w-1/2 md:block">
         <img
-          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop"
+          src={forgotImage}
           alt="Estudiantes EPN"
           className="h-full w-full object-cover"
         />

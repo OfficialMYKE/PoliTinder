@@ -10,6 +10,8 @@ vi.mock("firebase/auth", () => ({
   signOut: vi.fn(),
   updateProfile: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
+  sendEmailVerification: vi.fn(),
+  fetchSignInMethodsForEmail: vi.fn(),
   getAuth: vi.fn(() => ({ currentUser: null })),
 }));
 
@@ -161,11 +163,9 @@ describe("AuthContext", () => {
   });
 
   it("resetPassword verifica que el email existe antes de enviar", async () => {
-    const { signInWithEmailAndPassword, sendPasswordResetEmail } =
+    const { fetchSignInMethodsForEmail, sendPasswordResetEmail } =
       await import("firebase/auth");
-    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
-      code: "auth/wrong-password",
-    });
+    vi.mocked(fetchSignInMethodsForEmail).mockResolvedValue(["password"]);
     vi.mocked(sendPasswordResetEmail).mockResolvedValue(undefined);
 
     const { result } = renderAuthHook();
@@ -182,10 +182,8 @@ describe("AuthContext", () => {
   });
 
   it("resetPassword falla si el email no existe", async () => {
-    const { signInWithEmailAndPassword } = await import("firebase/auth");
-    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
-      code: "auth/user-not-found",
-    });
+    const { fetchSignInMethodsForEmail } = await import("firebase/auth");
+    vi.mocked(fetchSignInMethodsForEmail).mockResolvedValue([]);
 
     const { result } = renderAuthHook();
 
@@ -201,11 +199,9 @@ describe("AuthContext", () => {
   });
 
   it("resetPassword con error de Firebase mapea el mensaje", async () => {
-    const { signInWithEmailAndPassword, sendPasswordResetEmail } =
+    const { fetchSignInMethodsForEmail, sendPasswordResetEmail } =
       await import("firebase/auth");
-    vi.mocked(signInWithEmailAndPassword).mockRejectedValue({
-      code: "auth/wrong-password",
-    });
+    vi.mocked(fetchSignInMethodsForEmail).mockResolvedValue(["password"]);
     vi.mocked(sendPasswordResetEmail).mockRejectedValue({
       code: "auth/too-many-requests",
     });

@@ -129,7 +129,7 @@ export function RegisterFormSplitScreen({
                   <form
                     onSubmit={form.handleSubmit(handleSubmit)}
                     className="space-y-5"
-                    autoComplete="off"
+                    autoComplete="email"
                   >
                     <motion.div
                       variants={theme.animation.itemVariants}
@@ -227,7 +227,6 @@ function NameField({
               <Input
                 placeholder={placeholder}
                 {...field}
-                {...field}
                 disabled={isLoading}
                 className={`bg-white pl-12 h-12 rounded-full border focus-visible:ring-1 focus-visible:ring-offset-0 transition-colors ${
                   fieldState.error
@@ -265,8 +264,7 @@ function EmailField({ form, isLoading }: { form: any; isLoading: boolean }) {
               />
               <Input
                 placeholder="Correo institucional (@epn.edu.ec)"
-                autoComplete="off"
-                {...field}
+                autoComplete="email"
                 {...field}
                 disabled={isLoading}
                 className={`bg-white pl-12 h-12 rounded-full border focus-visible:ring-1 focus-visible:ring-offset-0 transition-colors ${
