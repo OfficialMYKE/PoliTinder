@@ -1,0 +1,24 @@
+{
+  "name": "Inicio de Sesión (Sign In)",
+  "method": "POST",
+  "url": "{{FIREBASE_BASE_URL}}/accounts:signInWithPassword?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "email": "estudiante@epn.edu.ec",
+    "password": "MiPassword123",
+    "returnSecureToken": true
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
+    "",
+    "pm.test('Inicio de sesión exitoso', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('idToken');",
+    "    pm.expect(json).to.have.property('registered', true);",
+    "    pm.expect(json).to.have.property('email');",
+    "});"
+  ]
+}

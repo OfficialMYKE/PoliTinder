@@ -1,0 +1,26 @@
+{
+  "name": "Refrescar Token",
+  "method": "POST",
+  "url": "https://securetoken.googleapis.com/v1/token?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "grant_type": "refresh_token",
+    "refresh_token": "{{REFRESH_TOKEN}}"
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "",
+    "pm.test('Token refrescado exitosamente', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('access_token');",
+    "    pm.expect(json).to.have.property('expires_in');",
+    "    pm.expect(json).to.have.property('refresh_token');",
+    "});",
+    "",
+    "pm.test('Tipo de token es Bearer', () => {",
+    "    pm.expect(json.token_type).to.eql('Bearer');",
+    "});"
+  ]
+}

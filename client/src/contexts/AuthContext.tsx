@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -8,12 +8,12 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   sendEmailVerification,
-  fetchSignInMethodsForEmail,
 } from "firebase/auth";
-import { IAuthUser, IAuthState, IAuthError } from "../types/auth";
+import { IAuthUser, IAuthState, IAuthError, UserRole } from "../types/auth";
 import { ITokenStorage } from "../services/storage/ITokenStorage";
 import { IUserStorage } from "../services/storage/IUserStorage";
 import { auth } from "../services/firebase";
+import { supabase } from "../services/supabase";
 
 /**
  * Interfaces del contexto de autenticación
@@ -45,6 +45,59 @@ interface AuthProviderProps {
  * Mapea errores de Firebase a mensajes legibles en español
  * @param error - Objeto de error devuelto por Firebase Auth
  */
+/**
+ * Obtiene el rol del usuario desde la tabla profiles en Supabase
+ */
+async function fetchUserRole(userId: string): Promise<UserRole> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.warn("[Auth] Error fetching role:", error.message);
+      return "student";
+    }
+    if (!data) {
+      console.warn("[Auth] No profile found for", userId);
+      return "student";
+    }
+    console.log("[Auth] Role fetched:", data.role);
+    return (data.role as UserRole) || "student";
+  } catch (err) {
+    console.warn("[Auth] Exception fetching role:", err);
+    return "student";
+  }
+}
+
+/**
+ * Construye un objeto IAuthUser a partir del usuario de Firebase y el rol
+ */
+function buildAuthUser(
+  fbUser: any,
+  credentials?: { firstName: string; lastName: string; email: string },
+  role: UserRole = "student",
+): IAuthUser {
+  return {
+    id: fbUser.uid,
+    email: fbUser.email || credentials?.email || "",
+    firstName:
+      credentials?.firstName ||
+      fbUser.displayName?.split(" ")[0] ||
+      "",
+    lastName:
+      credentials?.lastName ||
+      fbUser.displayName?.split(" ").slice(1).join(" ") ||
+      "",
+    role,
+    createdAt: fbUser.metadata.creationTime
+      ? new Date(fbUser.metadata.creationTime)
+      : new Date(),
+  };
+}
+
 function mapFirebaseError(error: any): IAuthError {
   const code = error?.code || "UNKNOWN_ERROR";
   const messages: Record<string, string> = {
@@ -76,10 +129,25 @@ export function AuthProvider({
   const [state, setState] = useState<IAuthState>({
     user: userStorage.getUser() as IAuthUser | null,
     token: tokenStorage.getToken(),
-    isLoading: false,
+    isLoading: !!tokenStorage.getToken(),
     error: null,
     isAuthenticated: !!tokenStorage.getToken(),
   });
+
+  useEffect(() => {
+    const storedUser = userStorage.getUser() as IAuthUser | null;
+    if (!storedUser) return;
+
+    fetchUserRole(storedUser.id).then((role) => {
+      const updatedUser: IAuthUser = { ...storedUser, role };
+      userStorage.setUser(updatedUser);
+      setState((prev) => ({
+        ...prev,
+        user: updatedUser,
+        isLoading: false,
+      }));
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
@@ -92,15 +160,8 @@ export function AuthProvider({
         );
         const { user: fbUser } = userCredential;
         const token = await fbUser.getIdToken();
-        const user: IAuthUser = {
-          id: fbUser.uid,
-          email: fbUser.email || credentials.email,
-          firstName: fbUser.displayName?.split(" ")[0] || "",
-          lastName: fbUser.displayName?.split(" ").slice(1).join(" ") || "",
-          createdAt: fbUser.metadata.creationTime
-            ? new Date(fbUser.metadata.creationTime)
-            : new Date(),
-        };
+        const role = await fetchUserRole(fbUser.uid);
+        const user = buildAuthUser(fbUser, undefined, role);
 
         tokenStorage.setToken(token);
         userStorage.setUser(user);
@@ -152,15 +213,7 @@ export function AuthProvider({
         }
 
         const token = await fbUser.getIdToken();
-        const user: IAuthUser = {
-          id: fbUser.uid,
-          email: fbUser.email || credentials.email,
-          firstName: credentials.firstName,
-          lastName: credentials.lastName,
-          createdAt: fbUser.metadata.creationTime
-            ? new Date(fbUser.metadata.creationTime)
-            : new Date(),
-        };
+        const user = buildAuthUser(fbUser, credentials, "student");
 
         tokenStorage.setToken(token);
         userStorage.setUser(user);
@@ -196,15 +249,8 @@ export function AuthProvider({
       const result = await signInWithPopup(auth, provider);
       const { user: fbUser } = result;
       const token = await fbUser.getIdToken();
-      const user: IAuthUser = {
-        id: fbUser.uid,
-        email: fbUser.email || "",
-        firstName: fbUser.displayName?.split(" ")[0] || "",
-        lastName: fbUser.displayName?.split(" ").slice(1).join(" ") || "",
-        createdAt: fbUser.metadata.creationTime
-          ? new Date(fbUser.metadata.creationTime)
-          : new Date(),
-      };
+      const role = await fetchUserRole(fbUser.uid);
+      const user = buildAuthUser(fbUser, undefined, role);
 
       tokenStorage.setToken(token);
       userStorage.setUser(user);
@@ -227,22 +273,9 @@ export function AuthProvider({
     }
   }, [tokenStorage, userStorage]);
 
-  const checkEmailExists = useCallback(async (email: string): Promise<boolean> => {
-    try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      return methods.length > 0;
-    } catch {
-      return false;
-    }
-  }, []);
-
   const resetPassword = useCallback(async (email: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      const exists = await checkEmailExists(email);
-      if (!exists) {
-        throw { code: "auth/user-not-found" };
-      }
       await sendPasswordResetEmail(auth, email);
       setState((prev) => ({
         ...prev,
@@ -258,7 +291,7 @@ export function AuthProvider({
       }));
       throw mapped;
     }
-  }, [checkEmailExists]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {

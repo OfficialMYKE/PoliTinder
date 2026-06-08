@@ -1,8 +1,6 @@
 -- ============================================================
 -- Migration 004: post_likes, post_comments, stories + buckets
 -- ============================================================
--- Ejecutar en el SQL Editor de Supabase
--- ============================================================
 
 -- 1. Tabla de likes en posts
 CREATE TABLE IF NOT EXISTS post_likes (

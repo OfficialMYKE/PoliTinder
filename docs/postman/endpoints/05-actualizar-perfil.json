@@ -1,0 +1,26 @@
+{
+  "name": "Actualizar Perfil",
+  "method": "POST",
+  "url": "{{FIREBASE_BASE_URL}}/accounts:update?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "idToken": "{{ID_TOKEN}}",
+    "displayName": "Juan Pérez",
+    "returnSecureToken": true
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "",
+    "pm.test('Perfil actualizado correctamente', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('displayName');",
+    "    pm.expect(json.displayName).to.eql('Juan Pérez');",
+    "});",
+    "",
+    "pm.test('Se devolvió un nuevo idToken', () => {",
+    "    pm.expect(json).to.have.property('idToken');",
+    "});"
+  ]
+}

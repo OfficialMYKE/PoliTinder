@@ -1,8 +1,11 @@
+import type { UserRole } from "./auth"
+
 export interface ProfileData {
   id: string
   nickname: string
   avatar_url: string | null
   banner_url: string | null
+  role: UserRole
   faculty: string
   career: string
   semester: number | null

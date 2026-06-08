@@ -1,0 +1,24 @@
+{
+  "name": "Registro (Sign Up)",
+  "method": "POST",
+  "url": "{{FIREBASE_BASE_URL}}/accounts:signUp?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "email": "estudiante@epn.edu.ec",
+    "password": "MiPassword123",
+    "returnSecureToken": true
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "pm.collectionVariables.set('ID_TOKEN', json.idToken);",
+    "",
+    "pm.test('Usuario registrado exitosamente', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('idToken');",
+    "    pm.expect(json).to.have.property('refreshToken');",
+    "    pm.expect(json).to.have.property('localId');",
+    "});"
+  ]
+}

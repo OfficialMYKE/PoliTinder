@@ -80,6 +80,8 @@ export default function Profile() {
   const [postImage, setPostImage] = useState<File | null>(null)
   const [postImagePreview, setPostImagePreview] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
+  const [postError, setPostError] = useState<string | null>(null)
+  const MAX_CONTENT_LENGTH = 500
 
   const loadData = useCallback(async () => {
     if (!user?.id) return
@@ -125,8 +127,13 @@ export default function Profile() {
   }
 
   async function handlePublish() {
+    setPostError(null)
     const trimmed = postContent.trim()
     if ((!trimmed && !postImage) || !user?.id || publishing) return
+    if (trimmed.length > MAX_CONTENT_LENGTH) {
+      setPostError(`El contenido excede el límite de ${MAX_CONTENT_LENGTH} caracteres`)
+      return
+    }
     setPublishing(true)
     try {
       let imageUrl: string | null = null
@@ -151,6 +158,7 @@ export default function Profile() {
       removeSelectedImage()
     } catch (err) {
       console.error(err)
+      setPostError("Error al publicar. Intenta de nuevo.")
     } finally {
       setPublishing(false)
     }
@@ -351,7 +359,12 @@ export default function Profile() {
                 <input
                   type="text"
                   value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length <= MAX_CONTENT_LENGTH) {
+                      setPostContent(e.target.value)
+                      setPostError(null)
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
@@ -379,7 +392,17 @@ export default function Profile() {
                   </div>
                 )}
 
-                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+                {postError && (
+                  <p className="mt-1 text-xs text-red-500">{postError}</p>
+                )}
+
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    {postContent.length}/{MAX_CONTENT_LENGTH}
+                  </span>
+                </div>
+
+                <div className="mt-1 flex items-center justify-between border-t border-slate-200 pt-3">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}

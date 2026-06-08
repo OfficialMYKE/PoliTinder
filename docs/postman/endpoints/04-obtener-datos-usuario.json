@@ -1,0 +1,28 @@
+{
+  "name": "Obtener Datos del Usuario",
+  "method": "POST",
+  "url": "{{FIREBASE_BASE_URL}}/accounts:lookup?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "idToken": "{{ID_TOKEN}}"
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "",
+    "pm.test('Datos obtenidos correctamente', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('users');",
+    "    pm.expect(json.users).to.be.an('array');",
+    "    pm.expect(json.users.length).to.be.at.least(1);",
+    "});",
+    "",
+    "pm.test('Usuario tiene los campos esperados', () => {",
+    "    const user = json.users[0];",
+    "    pm.expect(user).to.have.property('localId');",
+    "    pm.expect(user).to.have.property('email');",
+    "    pm.expect(user).to.have.property('emailVerified');",
+    "});"
+  ]
+}

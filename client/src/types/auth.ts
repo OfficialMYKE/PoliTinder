@@ -2,6 +2,8 @@
  * Tipos del sistema de autenticación — ISP (Principio de Segregación de Interfaces)
  */
 
+export type UserRole = "student" | "moderator" | "admin";
+
 export interface ILoginCredentials {
   email: string;
   password: string;
@@ -19,6 +21,7 @@ export interface IAuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  role: UserRole;
   createdAt: Date;
 }
 

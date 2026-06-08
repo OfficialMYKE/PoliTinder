@@ -1,0 +1,25 @@
+{
+  "name": "Recuperar Contraseña",
+  "method": "POST",
+  "url": "{{FIREBASE_BASE_URL}}/accounts:sendOobCode?key={{API_KEY}}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "requestType": "PASSWORD_RESET",
+    "email": "estudiante@epn.edu.ec"
+  },
+  "tests": [
+    "const json = pm.response.json();",
+    "",
+    "pm.test('Solicitud de recuperación enviada', () => {",
+    "    pm.response.to.have.status(200);",
+    "    pm.expect(json).to.have.property('email');",
+    "    pm.expect(json.email).to.eql('estudiante@epn.edu.ec');",
+    "});",
+    "",
+    "pm.test('Tipo de solicitud es PASSWORD_RESET', () => {",
+    "    pm.expect(json.requestType).to.eql('PASSWORD_RESET');",
+    "});"
+  ]
+}

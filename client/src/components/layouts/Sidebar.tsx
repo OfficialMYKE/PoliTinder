@@ -9,6 +9,10 @@ import {
   LogOut,
   ChevronUp,
   ChevronDown,
+  Shield,
+  BarChart3,
+  Flag,
+  Settings,
 } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 import { getProfile } from "../../services/profile"
@@ -240,6 +244,108 @@ export function Sidebar() {
             </div>
           )}
         </div>
+
+        {/* Panel de Administración — solo visible para admin */}
+        {authState.user?.role === "admin" && (
+          <div className="border-t border-slate-200 pt-2">
+            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Administración
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/admin/dashboard")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/admin/dashboard")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <BarChart3 className="h-[18px] w-[18px] text-slate-500" />
+              Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/admin/users")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/admin/users")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <Users className="h-[18px] w-[18px] text-slate-500" />
+              Usuarios
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/admin/reports")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/admin/reports")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <Flag className="h-[18px] w-[18px] text-slate-500" />
+              Reportes
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/admin/settings")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/admin/settings")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <Settings className="h-[18px] w-[18px] text-slate-500" />
+              Configuración
+            </button>
+          </div>
+        )}
+
+        {/* Panel de Moderador — visible para moderator y admin */}
+        {(authState.user?.role === "moderator" || authState.user?.role === "admin") && (
+          <div className="border-t border-slate-200 pt-2">
+            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Moderación
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/moderator/dashboard")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/moderator/dashboard")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <Shield className="h-[18px] w-[18px] text-slate-500" />
+              Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/moderator/reports")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/moderator/reports")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <Flag className="h-[18px] w-[18px] text-slate-500" />
+              Reportes
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/moderator/suspended")}
+              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+                location.pathname.startsWith("/moderator/suspended")
+                  ? "font-semibold text-slate-900"
+                  : "font-normal text-slate-700"
+              }`}
+            >
+              <User className="h-[18px] w-[18px] text-slate-500" />
+              Suspendidas
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Cerrar sesion */}

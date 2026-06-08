@@ -1,8 +1,6 @@
 -- ============================================================
 -- Migración 003: banner_url + tabla posts
 -- ============================================================
--- Ejecutar en el SQL Editor de Supabase
--- ============================================================
 
 -- 1. Agregar banner_url a profiles
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS banner_url TEXT;
@@ -21,5 +19,4 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 
--- 4. Bucket posts (si no existe, créalo manualmente en Storage)
--- Ve a: Storage > Create bucket > Name: "posts" > Public bucket: ON
+

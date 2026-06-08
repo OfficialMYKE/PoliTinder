@@ -10,8 +10,19 @@ import Matches from "./pages/Matches"
 import Messages from "./pages/Messages"
 import Terms from "./pages/Terms"
 import Privacy from "./pages/Privacy"
+
+import AdminDashboard from "./pages/admin/Dashboard"
+import AdminUsers from "./pages/admin/Users"
+import AdminReports from "./pages/admin/Reports"
+import AdminSettings from "./pages/admin/Settings"
+
+import ModeratorDashboard from "./pages/moderator/Dashboard"
+import ModeratorReports from "./pages/moderator/Reports"
+import SuspendedAccounts from "./pages/moderator/Suspended"
+
 import { AuthProvider, useAuth } from "./contexts/AuthContext"
 import { ProtectedRoute } from "./components/common/ProtectedRoute"
+import { RoleRoute } from "./components/common/RoleRoute"
 import { AppLayout } from "./components/layouts/AppLayout"
 import { createStorageServices } from "./services/storage"
 import type { IOnboardingStorage } from "./services/storage"
@@ -37,6 +48,9 @@ function RootRedirect({ onboardingStorage }: { onboardingStorage: IOnboardingSto
     return <Navigate to="/onboarding" replace />
   }
 
+  const role = state.user?.role
+  if (role === "admin") return <Navigate to="/admin/dashboard" replace />
+  if (role === "moderator") return <Navigate to="/moderator/dashboard" replace />
   return <Navigate to="/feed" replace />
 }
 
@@ -105,6 +119,80 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* Rutas de Administrador */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <RoleRoute allowedRoles={["admin"]}>
+                <AppLayout>
+                  <AdminDashboard />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <RoleRoute allowedRoles={["admin"]}>
+                <AppLayout>
+                  <AdminUsers />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <RoleRoute allowedRoles={["admin"]}>
+                <AppLayout>
+                  <AdminReports />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <RoleRoute allowedRoles={["admin"]}>
+                <AppLayout>
+                  <AdminSettings />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+
+          {/* Rutas de Moderador */}
+          <Route
+            path="/moderator/dashboard"
+            element={
+              <RoleRoute allowedRoles={["moderator", "admin"]}>
+                <AppLayout>
+                  <ModeratorDashboard />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/moderator/reports"
+            element={
+              <RoleRoute allowedRoles={["moderator", "admin"]}>
+                <AppLayout>
+                  <ModeratorReports />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/moderator/suspended"
+            element={
+              <RoleRoute allowedRoles={["moderator", "admin"]}>
+                <AppLayout>
+                  <SuspendedAccounts />
+                </AppLayout>
+              </RoleRoute>
+            }
+          />
+
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
         </Routes>

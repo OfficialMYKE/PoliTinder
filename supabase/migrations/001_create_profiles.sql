@@ -1,9 +1,6 @@
 -- ============================================================
 -- Migration 001: Create profiles table
 -- ============================================================
--- Ejecutar esto en el SQL Editor de Supabase (Dashboard > SQL Editor)
--- https://supabase.com/dashboard/project/mdqifesnlyyktjnutaqh/sql/new
--- ============================================================
 
 -- 1. Crear extensión para generar UUIDs (si no existe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -25,20 +22,12 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2b. Si la tabla ya existe, agregar columnas nuevas (ejecutar si ya creaste la tabla antes)
--- ALTER TABLE profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE;
--- ALTER TABLE profiles ALTER COLUMN semester TYPE TEXT USING semester::text;
--- ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_semester_check;
-
--- 3. Índices
+-- 2. Índices
 CREATE INDEX IF NOT EXISTS idx_profiles_faculty ON profiles(faculty);
 CREATE INDEX IF NOT EXISTS idx_profiles_career ON profiles(career);
 CREATE INDEX IF NOT EXISTS idx_profiles_created_at ON profiles(created_at DESC);
 
--- 4. Bucket de avatars (si no existe, créalo manualmente en Storage)
--- Ve a: Storage > Create bucket > Name: "avatars" > Public bucket: ON
-
--- 5. Políticas RLS (acceso público de lectura, escritura solo propio perfil)
+-- 3. Políticas RLS (acceso público de lectura, escritura solo propio perfil)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Permitir lectura a todos los usuarios autenticados
