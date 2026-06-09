@@ -1,16 +1,26 @@
 import { useEffect, useState, useCallback, useRef } from "react"
+import { useParams, useNavigate, Navigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Camera, Image as ImageIcon, Loader2, X } from "lucide-react"
+import { Camera, Image as ImageIcon, Loader2, X, ArrowLeft, MessageSquare, UserPlus, Check } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { getProfile } from "../services/profile"
 import { getUserPosts, createPost } from "../services/posts"
 import { uploadPostImage } from "../services/supabase"
+import { getOrCreateConversation } from "../services/messages"
 import { Button } from "../components/ui/button"
+import { getFriendshipStatus, sendFriendRequest } from "../services/friends"
 import { EditProfile } from "../components/profile/EditProfile"
 import { PostCard } from "../components/post/PostCard"
 import { FACULTIES } from "../data/academicData"
 import type { ProfileData } from "../types/profile"
 import type { PostWithProfile } from "../types/post"
+
+export function ProfileRedirect() {
+  const { state } = useAuth()
+  const currentUserId = state.user?.id
+  if (!currentUserId) return <Navigate to="/login" replace />
+  return <Navigate to={`/profile/${currentUserId}`} replace />
+}
 
 const STUDY_STYLE_LABELS: Record<string, string> = {
   madrugador: "Madrugador",
@@ -67,14 +77,27 @@ function DefaultBanner() {
 }
 
 export default function Profile() {
+  const { userId } = useParams<{ userId: string }>()
+  const navigate = useNavigate()
   const { state } = useAuth()
   const user = state.user
+  const profileUserId = userId ?? user?.id
+  const isOwnProfile = user?.id === profileUserId
+
+  if (!profileUserId) {
+    return (
+      <div className="mx-auto max-w-6xl px-6 pt-6">
+        <p className="text-sm text-slate-500">Usuario no encontrado</p>
+      </div>
+    )
+  }
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [posts, setPosts] = useState<PostWithProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [friendshipStatus, setFriendshipStatus] = useState<"none" | "pending_sent" | "pending_received" | "accepted">("none")
 
   const [postContent, setPostContent] = useState("")
   const [postImage, setPostImage] = useState<File | null>(null)
@@ -84,11 +107,12 @@ export default function Profile() {
   const MAX_CONTENT_LENGTH = 500
 
   const loadData = useCallback(async () => {
-    if (!user?.id) return
+    const pid = profileUserId
+    if (!pid) return
     try {
       const [profileData, userPosts] = await Promise.all([
-        getProfile(user.id),
-        getUserPosts(user.id),
+        getProfile(pid),
+        getUserPosts(pid),
       ])
       setProfile(profileData)
 
@@ -106,11 +130,16 @@ export default function Profile() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [profileUserId])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  useEffect(() => {
+    if (!user?.id || !profileUserId || isOwnProfile) return
+    getFriendshipStatus(user.id, profileUserId).then(setFriendshipStatus)
+  }, [user?.id, profileUserId, isOwnProfile])
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -172,8 +201,8 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950">
+        <Loader2 className="h-6 w-6 animate-spin text-slate-400 dark:text-zinc-500" />
       </div>
     )
   }
@@ -185,7 +214,7 @@ export default function Profile() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+        className="relative mb-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm"
       >
         <div className="relative h-48 sm:h-56 md:h-64">
           {profile?.banner_url ? (
@@ -197,11 +226,11 @@ export default function Profile() {
           ) : (
             <DefaultBanner />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/30 to-transparent dark:from-zinc-950 dark:via-zinc-950/30" />
         </div>
 
         <div className="relative -mt-16 flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-end sm:gap-6">
-          <div className="relative h-28 w-28 overflow-hidden rounded-full ring-4 ring-white shadow-md">
+          <div className="relative h-28 w-28 overflow-hidden rounded-full ring-4 ring-white dark:ring-zinc-950 shadow-md">
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -215,15 +244,15 @@ export default function Profile() {
 
           <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-wider truncate">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider truncate">
                 {nickname}
               </h1>
               {profile && (
                 <>
-                  <p className="mt-0.5 text-sm text-slate-500 truncate">
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-400 truncate">
                     PREGRADO - {resolveCareerLabel(profile.career).toUpperCase()}
                   </p>
-                  {email && (
+                  {isOwnProfile && email && (
                     <p className="mt-0.5 text-xs text-[#487CFF] truncate">
                       {email}
                     </p>
@@ -233,25 +262,69 @@ export default function Profile() {
             </div>
 
             <div className="flex shrink-0 gap-2">
-              <Button className="h-9 gap-1.5 rounded-full bg-[#487CFF] px-4 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:bg-[#3a6ae0]">
-                <Camera className="h-3.5 w-3.5" />
-                Anadir a historia
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditing(true)}
-                className="h-9 gap-1.5 rounded-full border-slate-200 bg-white px-4 text-xs font-medium text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50"
-              >
-                Editar perfil
-              </Button>
+              {!isOwnProfile && (
+                <>
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (!user?.id || !profileUserId) return
+                      await getOrCreateConversation(user.id, profileUserId)
+                      navigate("/messages")
+                    }}
+                    className="h-9 gap-1.5 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Mensaje
+                  </Button>
+                  {friendshipStatus === "none" && (
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        if (!user?.id || !profileUserId) return
+                        await sendFriendRequest(user.id, profileUserId)
+                        setFriendshipStatus("pending_sent")
+                      }}
+                      className="h-9 gap-1.5 rounded-full bg-[#487CFF] text-white px-4 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-[#487CFF]/90"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Conectar
+                    </Button>
+                  )}
+                  {friendshipStatus === "pending_sent" && (
+                    <span className="flex items-center gap-1.5 h-9 px-4 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+                      <Check className="h-3.5 w-3.5" />
+                      Solicitud enviada
+                    </span>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="h-9 gap-1.5 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Volver
+                  </Button>
+                </>
+              )}
+              {isOwnProfile && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditing(true)}
+                    className="h-9 gap-1.5 rounded-full border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                  >
+                    Editar perfil
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Section: ADN Academico */}
-      <p className="mb-4 text-base font-medium text-slate-800">ADN Academico</p>
+      <p className="mb-4 text-base font-medium text-slate-800 dark:text-zinc-200">ADN Academico</p>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[40%_60%]">
         {/* Left column */}
@@ -260,12 +333,12 @@ export default function Profile() {
             <motion.div
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
             >
-              <h3 className="mb-2 text-sm font-semibold text-slate-900">
+              <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-zinc-100">
                 Sobre mi
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+              <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed line-clamp-3">
                 {profile.bio}
               </p>
             </motion.div>
@@ -275,16 +348,16 @@ export default function Profile() {
             <motion.div
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">
+              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
                 Preferencias de Estudio
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.study_styles.map((style) => (
                   <span
                     key={style}
-                    className="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700"
+                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
                   >
                     {STUDY_STYLE_LABELS[style] ?? style}
                   </span>
@@ -297,16 +370,16 @@ export default function Profile() {
             <motion.div
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">
+              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
                 Intereses
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest) => (
                   <span
                     key={interest}
-                    className="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700"
+                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
                   >
                     {interest}
                   </span>
@@ -319,16 +392,16 @@ export default function Profile() {
             <motion.div
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">
+              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
                 Buscando
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.looking_for.map((item) => (
                   <span
                     key={item}
-                    className="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700"
+                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
                   >
                     {LOOKING_FOR_LABELS[item] ?? item}
                   </span>
@@ -340,11 +413,12 @@ export default function Profile() {
 
         {/* Right column */}
         <div className="flex flex-col gap-6">
-          <p className="text-base font-medium text-slate-800 -mb-2">Publicaciones</p>
+          <p className="text-base font-medium text-slate-800 dark:text-zinc-200 -mb-2">Publicaciones</p>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          {isOwnProfile && (
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
             <div className="flex gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200 dark:ring-zinc-700">
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
@@ -372,7 +446,7 @@ export default function Profile() {
                     }
                   }}
                   placeholder="¿En qué estás trabajando?"
-                  className="w-full bg-transparent py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                  className="w-full bg-transparent py-2 text-sm text-slate-700 dark:text-zinc-300 outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                 />
 
                 {postImagePreview && (
@@ -380,12 +454,12 @@ export default function Profile() {
                     <img
                       src={postImagePreview}
                       alt="Preview"
-                      className="h-24 w-24 rounded-lg object-cover ring-1 ring-slate-200"
+                      className="h-24 w-24 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-zinc-700"
                     />
                     <button
                       type="button"
                       onClick={removeSelectedImage}
-                      className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 hover:text-slate-700"
+                      className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 shadow-sm ring-1 ring-slate-200 dark:ring-zinc-700 hover:text-slate-700 dark:hover:text-zinc-200"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -397,16 +471,16 @@ export default function Profile() {
                 )}
 
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-400 dark:text-zinc-500">
                     {postContent.length}/{MAX_CONTENT_LENGTH}
                   </span>
                 </div>
 
-                <div className="mt-1 flex items-center justify-between border-t border-slate-200 pt-3">
+                <div className="mt-1 flex items-center justify-between border-t border-slate-200 dark:border-zinc-800 pt-3">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 dark:text-zinc-500 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800 hover:text-slate-600 dark:hover:text-zinc-300"
                   >
                     <ImageIcon className="h-4 w-4" />
                     Foto/Video
@@ -434,20 +508,28 @@ export default function Profile() {
               </div>
             </div>
           </div>
+          )}
 
           {posts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 text-center shadow-sm">
-              <p className="text-sm text-slate-500">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-16 text-center shadow-sm">
+              <p className="text-sm text-slate-500 dark:text-zinc-400">
                 Aún no hay publicaciones
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-400 dark:text-zinc-500">
                 Crea tu primera publicación académica
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onPostDeleted={(postId) => setPosts((prev) => prev.filter((p) => p.id !== postId))}
+                  onPostUpdated={(postId, content) =>
+                    setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, content } : p)))
+                  }
+                />
               ))}
             </div>
           )}
@@ -455,7 +537,7 @@ export default function Profile() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-12 border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+      <footer className="mt-12 border-t border-slate-200 dark:border-zinc-800 py-6 text-center text-xs text-slate-400 dark:text-zinc-500">
         <p>&copy; {new Date().getFullYear()} PoliTinder. Todos los derechos reservados.</p>
       </footer>
 

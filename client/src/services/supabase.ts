@@ -1,7 +1,18 @@
 import { createClient } from "@supabase/supabase-js"
+import type { TaggedUser } from "../types/post"
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
+export async function resolveTags(tagIds: string[]): Promise<TaggedUser[]> {
+  if (!tagIds || tagIds.length === 0) return []
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, nickname, avatar_url")
+    .in("id", tagIds)
+  if (error) return []
+  return (data ?? []).map((p) => ({ id: p.id, nickname: p.nickname, avatar_url: p.avatar_url }))
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(

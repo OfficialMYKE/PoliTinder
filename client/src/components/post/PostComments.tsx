@@ -56,14 +56,14 @@ export function PostComments({ postId, onCommentAdded, onCommentDeleted }: PostC
   }
 
   return (
-    <div className="border-t border-slate-100 bg-slate-50/50">
+    <div className="border-t border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
       <div className="max-h-64 overflow-y-auto space-y-3 px-5 py-4">
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+            <Loader2 className="h-4 w-4 animate-spin text-slate-400 dark:text-zinc-500" />
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-center text-xs text-slate-400 py-2">
+          <p className="text-center text-xs text-slate-400 dark:text-zinc-500 py-2">
             Sin comentarios aún. Sé el primero en comentar.
           </p>
         ) : (
@@ -81,10 +81,10 @@ export function PostComments({ postId, onCommentAdded, onCommentDeleted }: PostC
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-800">
+                <p className="text-xs font-semibold text-slate-800 dark:text-zinc-200">
                   {comment.profile?.nickname ?? "Usuario"}
                 </p>
-                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
                   {comment.content}
                 </p>
               </div>
@@ -93,7 +93,7 @@ export function PostComments({ postId, onCommentAdded, onCommentDeleted }: PostC
         )}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-slate-100 px-5 py-3">
+      <div className="flex items-center gap-2 border-t border-slate-100 dark:border-zinc-800 px-5 py-3">
         <div className="h-7 w-7 shrink-0 rounded-full bg-[#487CFF]/10 flex items-center justify-center text-xs font-semibold text-[#487CFF] overflow-hidden">
           {state.user?.email?.charAt(0)?.toUpperCase() ?? "?"}
         </div>
@@ -103,7 +103,7 @@ export function PostComments({ postId, onCommentAdded, onCommentDeleted }: PostC
           onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un comentario..."
-          className="flex-1 bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
+          className="flex-1 bg-transparent text-xs text-slate-700 dark:text-zinc-300 outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500"
         />
         <button
           type="button"

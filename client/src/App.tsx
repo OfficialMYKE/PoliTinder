@@ -5,7 +5,7 @@ import ForgotPassword from "./pages/ForgotPassword"
 import Onboarding from "./pages/Onboarding"
 import Welcome from "./pages/Welcome"
 import Feed from "./pages/Feed"
-import Profile from "./pages/Profile"
+import Profile, { ProfileRedirect } from "./pages/Profile"
 import Matches from "./pages/Matches"
 import Messages from "./pages/Messages"
 import Terms from "./pages/Terms"
@@ -91,6 +91,16 @@ function App() {
           />
           <Route
             path="/profile"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProfileRedirect />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
             element={
               <ProtectedRoute>
                 <AppLayout>

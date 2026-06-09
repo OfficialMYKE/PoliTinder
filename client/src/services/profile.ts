@@ -60,6 +60,44 @@ export async function updateProfile(
   }
 }
 
+export async function searchProfiles(
+  query: string,
+  excludeUserId?: string,
+  limit = 8,
+): Promise<ProfileData[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .ilike("nickname", `%${query}%`)
+    .neq("id", excludeUserId ?? "")
+    .limit(limit)
+
+  if (error) {
+    console.error("Error searching profiles:", error)
+    return []
+  }
+
+  return (data as ProfileData[]) ?? []
+}
+
+export async function getSuggestedUsers(
+  excludeUserId: string,
+  limit = 5,
+): Promise<ProfileData[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .neq("id", excludeUserId)
+    .limit(limit)
+
+  if (error) {
+    console.error("Error fetching suggested users:", error)
+    return []
+  }
+
+  return (data as ProfileData[]) ?? []
+}
+
 export async function getPotentialMatches(
   faculty: string,
   career: string,

@@ -1,19 +1,55 @@
-import { supabase } from "./supabase"
-import type { Post, PostCreateData, PostComment, PostWithProfile } from "../types/post"
+import { supabase, resolveTags } from "./supabase"
+import type { Post, PostCreateData, PostComment, PostWithProfile, TaggedUser } from "../types/post"
 
 export async function createPost(post: PostCreateData): Promise<Post> {
+  const baseData: Record<string, unknown> = {
+    user_id: post.user_id,
+    content: post.content,
+  }
+  if (post.image_url) baseData.image_url = post.image_url
+  if (post.tags && post.tags.length > 0) baseData.tags = post.tags
+
+  const insertData = { ...baseData }
   const { data, error } = await supabase
     .from("posts")
-    .insert(post)
+    .insert(insertData)
     .select()
     .single()
 
   if (error) {
     console.error("Error creating post:", error)
+    if (
+      post.tags &&
+      post.tags.length > 0 &&
+      error.message?.includes("column")
+    ) {
+      delete baseData.tags
+      const { data: fallback, error: fallbackError } = await supabase
+        .from("posts")
+        .insert(baseData)
+        .select()
+        .single()
+      if (fallbackError) {
+        console.error("Error creating post (fallback):", fallbackError)
+        throw new Error(fallbackError.message)
+      }
+      return fallback as Post
+    }
     throw new Error(error.message)
   }
 
   return data as Post
+}
+
+export async function getPostTags(postId: string): Promise<TaggedUser[]> {
+  try {
+    const { data, error } = await supabase
+      .rpc("get_post_tags", { post_id_param: postId })
+    if (error) return []
+    return (data as TaggedUser[]) ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function getUserPosts(userId: string): Promise<PostWithProfile[]> {
@@ -35,7 +71,17 @@ export async function getUserPosts(userId: string): Promise<PostWithProfile[]> {
   })) as PostWithProfile[]
 
   await enrichPostCounts(posts)
+  await resolvePostTags(posts)
   return posts
+}
+
+async function resolvePostTags(posts: PostWithProfile[]): Promise<void> {
+  for (const post of posts) {
+    const rawTags = (post as unknown as Record<string, string[] | undefined>).tags
+    if (rawTags && rawTags.length > 0) {
+      post.tags = await resolveTags(rawTags)
+    }
+  }
 }
 
 export async function getFeedPosts(currentUserId: string): Promise<PostWithProfile[]> {
@@ -77,6 +123,8 @@ export async function getFeedPosts(currentUserId: string): Promise<PostWithProfi
   } catch {
     // post_likes table might not exist yet (migration 004)
   }
+
+  await resolvePostTags(posts)
 
   return posts
 }
@@ -164,6 +212,33 @@ export async function getPostComments(postId: string): Promise<PostComment[]> {
   }
 
   return (data ?? []) as unknown as PostComment[]
+}
+
+export async function updatePost(
+  postId: string,
+  updates: { content?: string; image_url?: string | null },
+): Promise<void> {
+  const { error } = await supabase
+    .from("posts")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", postId)
+
+  if (error) {
+    console.error("Error updating post:", error)
+    throw new Error(error.message)
+  }
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  const { error } = await supabase
+    .from("posts")
+    .delete()
+    .eq("id", postId)
+
+  if (error) {
+    console.error("Error deleting post:", error)
+    throw new Error(error.message)
+  }
 }
 
 export async function createComment(

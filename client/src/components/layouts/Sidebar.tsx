@@ -13,9 +13,15 @@ import {
   BarChart3,
   Flag,
   Settings,
+  Archive,
+  UserPlus,
 } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 import { getProfile } from "../../services/profile"
+import { getFriendRequestCount } from "../../services/friends"
+import { getConversations } from "../../services/messages"
+import type { ConversationWithLastMessage } from "../../types/message"
+import { hasUnreadMessages } from "../../services/friends"
 
 const PERFIL_SUB_ITEMS = [
   "Informacion de seguridad",
@@ -42,7 +48,7 @@ const MENSAJES_SUB_ITEMS = [
 ]
 
 const SUB_ITEM_CLASS =
-  "flex w-full items-center px-4 py-2 pl-12 text-sm font-normal text-slate-500 transition-colors hover:text-[#106ebe]"
+  "flex w-full items-center px-4 py-2 pl-12 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-[#106ebe]"
 
 function getInitials(first: string, last: string): string {
   return `${(first?.charAt(0) ?? "").toUpperCase()}${(last?.charAt(0) ?? "").toUpperCase()}` || "?"
@@ -59,9 +65,19 @@ export function Sidebar() {
   const [matchesOpen, setMatchesOpen] = useState(true)
   const [gruposOpen, setGruposOpen] = useState(true)
   const [mensajesOpen, setMensajesOpen] = useState(true)
+  const [pendingRequests, setPendingRequests] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     if (!user?.id) return
+    async function load() {
+      const count = await getFriendRequestCount(user.id)
+      setPendingRequests(count)
+      const convs = await getConversations(user.id)
+      const unread = convs.filter((c: ConversationWithLastMessage) => hasUnreadMessages(c, user.id)).length
+      setUnreadCount(unread)
+    }
+    load()
     getProfile(user.id)
       .then((p) => {
         if (p?.avatar_url) setAvatarUrl(p.avatar_url)
@@ -76,9 +92,9 @@ export function Sidebar() {
   const initials = getInitials(firstName, lastName)
 
   return (
-    <aside className="flex h-full w-60 flex-col bg-[#faf9f8]">
+    <aside className="flex h-full w-60 flex-col bg-[#faf9f8] dark:bg-zinc-950">
       {/* User profile section */}
-      <div className="flex items-start gap-3 px-4 pt-6 pb-8">
+      <div className="flex items-start gap-3 px-4 pt-6 pb-6">
         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0b6bcb] text-sm font-bold text-white select-none">
           {avatarUrl ? (
             <img
@@ -91,25 +107,25 @@ export function Sidebar() {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900 uppercase truncate leading-tight">
+          <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100 uppercase truncate leading-tight">
             {fullName}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500 truncate">
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400 truncate">
             {email}
           </p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto space-y-0">
+      <nav className="flex-1 overflow-y-auto space-y-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
         {/* Inicio */}
         <button
           type="button"
           onClick={() => navigate("/feed")}
           className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
             location.pathname === "/feed"
-              ? "font-semibold text-slate-900"
-              : "font-normal text-slate-700"
+              ? "font-semibold text-slate-900 dark:text-zinc-100"
+              : "font-normal text-slate-700 dark:text-zinc-300"
           }`}
         >
           {location.pathname === "/feed" && (
@@ -117,7 +133,7 @@ export function Sidebar() {
           )}
           <House
             className={`h-[18px] w-[18px] ${
-              location.pathname === "/feed" ? "text-[#106ebe]" : "text-slate-500"
+              location.pathname === "/feed" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
             }`}
           />
           Inicio
@@ -129,12 +145,12 @@ export function Sidebar() {
             type="button"
             onClick={() => {
               setPerfilOpen(!perfilOpen)
-              navigate("/profile")
+              navigate(`/profile/${user?.id}`)
             }}
             className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
               location.pathname === "/profile"
-                ? "font-semibold text-slate-900"
-                : "font-normal text-slate-700"
+                ? "font-semibold text-slate-900 dark:text-zinc-100"
+                : "font-normal text-slate-700 dark:text-zinc-300"
             }`}
           >
             {location.pathname === "/profile" && (
@@ -142,14 +158,14 @@ export function Sidebar() {
             )}
             <User
               className={`h-[18px] w-[18px] ${
-                location.pathname === "/profile" ? "text-[#106ebe]" : "text-slate-500"
+                location.pathname === "/profile" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
               }`}
             />
             <span className="flex-1 text-left">Mi Perfil</span>
             {perfilOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             )}
           </button>
 
@@ -169,14 +185,14 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setMatchesOpen(!matchesOpen)}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 transition-colors hover:text-[#106ebe]"
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 dark:text-zinc-300 transition-colors hover:text-[#106ebe]"
           >
-            <Heart className="h-[18px] w-[18px] text-slate-500" />
+            <Heart className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
             <span className="flex-1 text-left">Mis Matches</span>
             {matchesOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             )}
           </button>
 
@@ -196,14 +212,14 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setGruposOpen(!gruposOpen)}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 transition-colors hover:text-[#106ebe]"
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 dark:text-zinc-300 transition-colors hover:text-[#106ebe]"
           >
-            <Users className="h-[18px] w-[18px] text-slate-500" />
+            <Users className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
             <span className="flex-1 text-left">Grupos de estudio</span>
             {gruposOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             )}
           </button>
 
@@ -222,33 +238,79 @@ export function Sidebar() {
         <div>
           <button
             type="button"
-            onClick={() => setMensajesOpen(!mensajesOpen)}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 transition-colors hover:text-[#106ebe]"
+            onClick={() => {
+              setMensajesOpen(!mensajesOpen)
+              navigate("/messages")
+            }}
+            className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+              location.pathname === "/messages"
+                ? "font-semibold text-slate-900 dark:text-zinc-100"
+                : "font-normal text-slate-700 dark:text-zinc-300"
+            }`}
           >
-            <MessageSquare className="h-[18px] w-[18px] text-slate-500" />
+            {location.pathname === "/messages" && (
+              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
+            )}
+            <MessageSquare
+              className={`h-[18px] w-[18px] ${
+                location.pathname === "/messages" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
+              }`}
+            />
             <span className="flex-1 text-left">Mensajes</span>
             {mensajesOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400" />
+              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             )}
           </button>
 
           {mensajesOpen && (
             <div className="pb-1">
-              {MENSAJES_SUB_ITEMS.map((item) => (
-                <button key={item} type="button" className={SUB_ITEM_CLASS}>
-                  {item}
-                </button>
-              ))}
+              <button
+                type="button"
+                onClick={() => navigate("/messages?tab=recientes")}
+                className={SUB_ITEM_CLASS + " relative"}
+              >
+                  <span className="flex items-center gap-2">
+                    Chats recientes
+                    {unreadCount > 0 && (
+                      <span className="w-2 h-2 rounded-full bg-[#487CFF] shrink-0" />
+                    )}
+                  </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/messages?tab=archivados")}
+                className={SUB_ITEM_CLASS}
+              >
+                <span className="flex items-center gap-2">
+                  <Archive className="w-3.5 h-3.5" />
+                  Archivados
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/messages?tab=solicitudes")}
+                className={SUB_ITEM_CLASS + " relative"}
+              >
+                <span className="flex items-center gap-2">
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Solicitudes de mensaje
+                  {pendingRequests > 0 && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#487CFF] text-[10px] font-bold text-white shrink-0">
+                      {pendingRequests}
+                    </span>
+                  )}
+                </span>
+              </button>
             </div>
           )}
         </div>
 
         {/* Panel de Administración — solo visible para admin */}
         {authState.user?.role === "admin" && (
-          <div className="border-t border-slate-200 pt-2">
-            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <div className="border-t border-slate-200 dark:border-zinc-800 pt-2">
+            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
               Administración
             </p>
             <button
@@ -256,11 +318,11 @@ export function Sidebar() {
               onClick={() => navigate("/admin/dashboard")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/dashboard")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <BarChart3 className="h-[18px] w-[18px] text-slate-500" />
+              <BarChart3 className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Dashboard
             </button>
             <button
@@ -268,11 +330,11 @@ export function Sidebar() {
               onClick={() => navigate("/admin/users")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/users")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <Users className="h-[18px] w-[18px] text-slate-500" />
+              <Users className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Usuarios
             </button>
             <button
@@ -280,11 +342,11 @@ export function Sidebar() {
               onClick={() => navigate("/admin/reports")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/reports")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <Flag className="h-[18px] w-[18px] text-slate-500" />
+              <Flag className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Reportes
             </button>
             <button
@@ -292,11 +354,11 @@ export function Sidebar() {
               onClick={() => navigate("/admin/settings")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/settings")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <Settings className="h-[18px] w-[18px] text-slate-500" />
+              <Settings className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Configuración
             </button>
           </div>
@@ -304,8 +366,8 @@ export function Sidebar() {
 
         {/* Panel de Moderador — visible para moderator y admin */}
         {(authState.user?.role === "moderator" || authState.user?.role === "admin") && (
-          <div className="border-t border-slate-200 pt-2">
-            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <div className="border-t border-slate-200 dark:border-zinc-800 pt-2">
+            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
               Moderación
             </p>
             <button
@@ -313,11 +375,11 @@ export function Sidebar() {
               onClick={() => navigate("/moderator/dashboard")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/dashboard")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <Shield className="h-[18px] w-[18px] text-slate-500" />
+              <Shield className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Dashboard
             </button>
             <button
@@ -325,11 +387,11 @@ export function Sidebar() {
               onClick={() => navigate("/moderator/reports")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/reports")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <Flag className="h-[18px] w-[18px] text-slate-500" />
+              <Flag className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Reportes
             </button>
             <button
@@ -337,11 +399,11 @@ export function Sidebar() {
               onClick={() => navigate("/moderator/suspended")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/suspended")
-                  ? "font-semibold text-slate-900"
-                  : "font-normal text-slate-700"
+                  ? "font-semibold text-slate-900 dark:text-zinc-100"
+                  : "font-normal text-slate-700 dark:text-zinc-300"
               }`}
             >
-              <User className="h-[18px] w-[18px] text-slate-500" />
+              <User className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
               Suspendidas
             </button>
           </div>
@@ -355,7 +417,7 @@ export function Sidebar() {
           logout()
           navigate("/login")
         }}
-        className="flex w-full items-center gap-3 border-t border-slate-200 px-4 py-3 text-sm font-normal text-slate-500 transition-colors hover:text-red-500 hover:bg-red-50"
+        className="flex w-full items-center gap-3 border-t border-slate-200 dark:border-zinc-800 px-4 py-3 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
       >
         <LogOut className="h-[18px] w-[18px]" />
         Cerrar sesion

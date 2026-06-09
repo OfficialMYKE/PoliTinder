@@ -44,15 +44,15 @@ export default function ModeratorDashboard() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-8 text-2xl font-bold text-slate-900">Panel de Moderación</h1>
+      <h1 className="mb-8 text-2xl font-bold text-slate-900 dark:text-zinc-100">Panel de Moderación</h1>
 
       <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div key={card.label} className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500">{card.label}</p>
-                <p className="mt-1 text-3xl font-bold text-slate-900">{card.value}</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-zinc-400">{card.label}</p>
+                <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-zinc-100">{card.value}</p>
               </div>
               <card.icon className={`h-10 w-10 ${card.color}`} />
             </div>
@@ -60,20 +60,20 @@ export default function ModeratorDashboard() {
         ))}
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Resumen de Contenido</h2>
+      <div className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-zinc-100">Resumen de Contenido</h2>
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="rounded-lg bg-slate-50 p-4">
-            <p className="text-2xl font-bold text-slate-900">{stats.totalPosts}</p>
-            <p className="text-xs text-slate-500">Publicaciones</p>
+          <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 p-4">
+            <p className="text-2xl font-bold text-slate-900 dark:text-zinc-100">{stats.totalPosts}</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Publicaciones</p>
           </div>
-          <div className="rounded-lg bg-slate-50 p-4">
-            <p className="text-2xl font-bold text-slate-900">{stats.totalComments}</p>
-            <p className="text-xs text-slate-500">Comentarios</p>
+          <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 p-4">
+            <p className="text-2xl font-bold text-slate-900 dark:text-zinc-100">{stats.totalComments}</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Comentarios</p>
           </div>
-          <div className="rounded-lg bg-slate-50 p-4">
-            <p className="text-2xl font-bold text-slate-900">{stats.totalUsers}</p>
-            <p className="text-xs text-slate-500">Usuarios</p>
+          <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 p-4">
+            <p className="text-2xl font-bold text-slate-900 dark:text-zinc-100">{stats.totalUsers}</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Usuarios</p>
           </div>
         </div>
       </div>
