@@ -41,7 +41,7 @@ Las páginas son componentes de alto nivel que orquestan la interacción entre l
 | `Feed`           | `/feed`            | Inicio: stories + publicaciones del feed   |
 | `Profile`        | `/profile`         | Perfil del usuario con sus publicaciones   |
 | `Matches`        | `/matches`         | Cards de potenciales matches (Tinder-like) |
-| `Messages`       | `/messages`        | Bandeja de mensajes (no implementado)      |
+| `Messages`       | `/messages`        | Bandeja de mensajes + chat en tiempo real  |
 | `Terms`          | `/terms`           | Términos y condiciones legales             |
 | `Privacy`        | `/privacy`         | Política de privacidad                     |
 
@@ -62,11 +62,13 @@ El contexto de autenticación expone: `login`, `register`, `loginWithMicrosoft`,
 
 #### Servicios de Datos (Supabase)
 
-| Servicio    | Archivo               | Funciones principales                                                                                      |
-| ----------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **profile** | `services/profile.ts` | `createProfile`, `getProfile`, `updateProfile`, `getPotentialMatches`, `mapOnboardingToProfile`            |
-| **posts**   | `services/posts.ts`   | `createPost`, `getUserPosts`, `getFeedPosts`, `likePost`, `unlikePost`, `getPostComments`, `createComment` |
-| **stories** | `services/stories.ts` | `createStory`, `getUserStories`, `getActiveStories`, `deleteStory`                                         |
+| Servicio   | Archivo                | Funciones principales                                                                                      |
+| ---------- | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **profile**| `services/profile.ts`  | `createProfile`, `getProfile`, `updateProfile`, `getPotentialMatches`, `mapOnboardingToProfile`            |
+| **posts**  | `services/posts.ts`    | `createPost`, `getUserPosts`, `getFeedPosts`, `likePost`, `unlikePost`, `getPostComments`, `createComment` |
+| **stories**| `services/stories.ts`  | `createStory`, `getUserStories`, `getActiveStories`, `deleteStory`, `likeStory`, `replyToStory`, `muteUser`, `reportStory`, `shareStory` |
+| **messages**| `services/messages.ts` | `getOrCreateConversation`, `sendMessage`, `getConversations`, `getMessages`, `subscribeToMessages`, `subscribeToConversations` |
+| **friends**| `services/friends.ts`  | `getFriendshipStatus`, `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `getIncomingRequests`, `getArchivedConversationIds`, `archiveConversation`, `unarchiveConversation` |
 
 #### Almacenamiento (Supabase Storage)
 
@@ -127,6 +129,11 @@ Visor de historias a pantalla completa:
 - Soporte para imágenes y videos
 - Botón de mute/unmute para videos
 - Pausa al mantener presionado
+- **Like** con contador animado
+- **Reply** (responde a la historia y envía DM al creador)
+- **Share** (compartir vía Web Share API)
+- **Mute/Report** desde menú contextual
+- **Delete** (solo historias propias)
 
 ### 5. Esquema de Base de Datos (Supabase PostgreSQL)
 
@@ -189,6 +196,126 @@ Visor de historias a pantalla completa:
 | `created_at` | `TIMESTAMPTZ` | Fecha de creación            |
 | `expires_at` | `TIMESTAMPTZ` | Expira a las 24 horas        |
 
+#### Tabla `conversations`
+
+| Columna                  | Tipo          | Descripción                          |
+| ------------------------ | ------------- | ------------------------------------ |
+| `id`                     | `UUID`        | PK (auto-generado)                   |
+| `participant1_id`        | `TEXT`        | FK → profiles(id), menor ordenada    |
+| `participant2_id`        | `TEXT`        | FK → profiles(id), mayor ordenada    |
+| `last_message_at`        | `TIMESTAMPTZ` | Último mensaje enviado               |
+| `participant1_last_read_at` | `TIMESTAMPTZ` | Última lectura del participante 1  |
+| `participant2_last_read_at` | `TIMESTAMPTZ` | Última lectura del participante 2  |
+| `created_at`             | `TIMESTAMPTZ` | Fecha de creación                    |
+| (UC: `unique_participants`) |            | (participant1_id, participant2_id)   |
+
+#### Vista `conversations_with_last_message`
+
+JOIN entre `conversations`, `profiles` (ambos participantes) y `messages` (último mensaje vía LATERAL). Incluye nicknames, avatares, read timestamps y datos del último mensaje.
+
+#### Tabla `messages`
+
+| Columna            | Tipo          | Descripción                                |
+| ------------------ | ------------- | ------------------------------------------ |
+| `id`               | `UUID`        | PK (auto-generado)                         |
+| `conversation_id`  | `UUID`        | FK → conversations(id) ON DELETE CASCADE   |
+| `sender_id`        | `TEXT`        | FK → profiles(id)                          |
+| `content`          | `TEXT`        | Contenido (1-1000 chars)                   |
+| `reply_to_story_id`| `UUID?`       | FK → stories(id) (respuesta a historia)    |
+| `created_at`       | `TIMESTAMPTZ` | Fecha de envío                             |
+
+#### Tabla `story_likes`
+
+| Columna      | Tipo          | Descripción                       |
+| ------------ | ------------- | --------------------------------- |
+| `user_id`    | `TEXT`        | FK → profiles(id)                 |
+| `story_id`   | `UUID`        | FK → stories(id)                  |
+| `created_at` | `TIMESTAMPTZ` | Fecha del like                    |
+| (PK compuesta: user_id + story_id) |
+
+#### Tabla `story_replies`
+
+| Columna      | Tipo          | Descripción                       |
+| ------------ | ------------- | --------------------------------- |
+| `id`         | `UUID`        | PK (auto-generado)                |
+| `story_id`   | `UUID`        | FK → stories(id)                  |
+| `user_id`    | `TEXT`        | FK → profiles(id)                 |
+| `content`    | `TEXT`        | Contenido (1-1000 chars)          |
+| `created_at` | `TIMESTAMPTZ` | Fecha de respuesta                |
+
+#### Tabla `user_mutes`
+
+| Columna        | Tipo          | Descripción                       |
+| -------------- | ------------- | --------------------------------- |
+| `user_id`      | `TEXT`        | FK → profiles(id)                 |
+| `muted_user_id`| `TEXT`        | FK → profiles(id)                 |
+| `created_at`   | `TIMESTAMPTZ` | Fecha                             |
+| (PK compuesta: user_id + muted_user_id) |
+
+#### Tabla `friend_requests`
+
+| Columna      | Tipo          | Descripción                                    |
+| ------------ | ------------- | ---------------------------------------------- |
+| `id`         | `UUID`        | PK (auto-generado)                             |
+| `sender_id`  | `TEXT`        | FK → profiles(id)                              |
+| `receiver_id`| `TEXT`        | FK → profiles(id)                              |
+| `status`     | `TEXT`        | 'pending', 'accepted', 'blocked'               |
+| `created_at` | `TIMESTAMPTZ` | Fecha de envío                                 |
+| `updated_at` | `TIMESTAMPTZ` | Fecha de última actualización                  |
+| (UC: `unique_friend_request`) |             | (sender_id, receiver_id)                       |
+
+#### Tabla `archived_conversations`
+
+| Columna          | Tipo          | Descripción                          |
+| ---------------- | ------------- | ------------------------------------ |
+| `conversation_id`| `UUID`        | FK → conversations(id) ON DELETE CASCADE |
+| `user_id`        | `TEXT`        | FK → profiles(id)                    |
+| `archived_at`    | `TIMESTAMPTZ` | Fecha de archivo                     |
+| (PK compuesta: conversation_id + user_id) |
+
+## Flujo de Mensajería
+
+```
+1. Usuario A envía mensaje a Usuario B
+2. getOrCreateConversation() asegura que exista una conversación
+3. sendMessage() inserta en tabla "messages"
+4. Suscripción Realtime: subscribeToMessages() recibe el nuevo mensaje
+5. subscribeToConversations() actualiza la vista con el último mensaje
+6. Auto-scroll al último mensaje en Messages.tsx
+```
+
+## Flujo de Videollamada
+
+```
+1. Usuario A hace clic en Video/Phone en el header del chat
+2. initiateCall(type) emite broadcast "incoming_call" vía Supabase Realtime
+3. Se monta VideoCallModal que importa dinámicamente ZegoCloud UIKit
+4. generateKitTokenForTest() genera token con APP_ID + SERVER_SECRET
+5. joinRoom() con turnOnCameraWhenJoining según el tipo
+6. Usuario B recibe el broadcast → modal "Llamada entrante"
+7. Al contestar: se monta VideoCallModal con la misma roomID
+8. Al colgar: onLeaveRoom → setCallType(null)
+```
+
+## Flujo de Solicitudes de Amistad
+
+```
+1. Usuario A hace clic en "Conectar" (Profile o header del chat)
+2. sendFriendRequest() inserta en friend_requests con status='pending'
+3. Usuario B ve la solicitud en Messages?tab=solicitudes
+4. Aceptar: acceptFriendRequest() → status='accepted' vía RPC
+5. Rechazar: rejectFriendRequest() → status='blocked' vía RPC
+```
+
+## Flujo de Archivado
+
+```
+1. Usuario abre menú (⋮) en header del chat
+2. "Archivar chat" → archiveConversation() inserta en archived_conversations
+3. Chat desaparece de "recientes" y aparece en "archivados"
+4. "Desarchivar chat" → unarchiveConversation() elimina el registro
+```
+
 ### 6. Validación (Schemas Zod)
 
 | Esquema                | Reglas                                                                                |
@@ -241,7 +368,7 @@ PoliTinder/
 ├── client/                          # Frontend React SPA
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/              # Componentes compartidos
+│   │   │   ├── chat/                # VideoCallModal (ZegoCloud)
 │   │   │   ├── layouts/             # Sidebar, AppLayout
 │   │   │   ├── onboarding/          # Componentes del onboarding
 │   │   │   ├── post/                # PostCard, PostComments, StoriesBar, StoryViewer
@@ -250,7 +377,7 @@ PoliTinder/
 │   │   ├── contexts/                # AuthContext (Firebase)
 │   │   ├── data/                    # Datos estáticos (facultades, carreras)
 │   │   ├── hooks/                   # useLoginForm, useRegisterForm, etc.
-│   │   ├── pages/                   # Login, Register, Feed, Profile, etc.
+│   │   ├── pages/                   # Login, Register, Feed, Profile, Messages, etc.
 │   │   ├── schemas/                 # Zod validation schemas
 │   │   ├── services/
 │   │   │   ├── storage/             # TokenStorage, UserStorage, OnboardingStorage
@@ -258,14 +385,16 @@ PoliTinder/
 │   │   │   ├── supabase.ts          # Cliente Supabase + upload helpers
 │   │   │   ├── profile.ts           # CRUD perfiles
 │   │   │   ├── posts.ts             # CRUD posts + likes + comentarios
-│   │   │   └── stories.ts           # CRUD stories
+│   │   │   ├── stories.ts           # CRUD stories + interacciones (like, reply, mute, report)
+│   │   │   ├── messages.ts          # Mensajería en tiempo real (Supabase Realtime)
+│   │   │   └── friends.ts           # Solicitudes de amistad y archivado
 │   │   ├── test/                    # Tests unitarios (Vitest)
-│   │   ├── types/                   # Interfaces TypeScript
+│   │   ├── types/                   # Interfaces TypeScript (incluye message.ts)
 │   │   └── App.tsx                  # Router principal
-│   ├── .env                         # Variables de entorno
+│   ├── .env.local                   # Variables de entorno (+ ZEGOCLOUD)
 │   └── package.json
 ├── supabase/
-│   └── migrations/                  # Migraciones SQL (001 → 004)
+│   └── migrations/                  # Migraciones SQL (001 → 012)
 └── docs/
     ├── ARQUITECTURA.md              # Este documento
     └── CONTRIBUIR.md                # Guía de contribución
@@ -287,6 +416,7 @@ PoliTinder/
 | Zod                   | Validación de formularios         |
 | Vitest                | Testing                           |
 | Lucide React          | Iconos                            |
+| ZegoCloud UIKit       | Videollamadas (WebRTC)            |
 
 ### 9. Configuración del Entorno
 
@@ -302,6 +432,8 @@ VITE_FIREBASE_APP_ID=xxx
 VITE_FIREBASE_MEASUREMENT_ID=xxx
 VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=xxx
+VITE_ZEGOCLOUD_APP_ID=1205149496
+VITE_ZEGOCLOUD_SERVER_SECRET=xxx
 ```
 
 ### 10. Instalación y Ejecución
@@ -366,17 +498,28 @@ npm run lint       # Verificación de código
 | Feed con stories + publicaciones de todos los usuarios        | Michael Carrillo  | ✅     |
 | Correo de verificación al registrarse (sendEmailVerification) | Michael Carrillo  | ✅     |
 
-### Sprint 4: Mensajería y Notificaciones (Planificado)
+### Sprint 4: Mensajería y Videollamadas (Completado)
 
-**Objetivo**: Implementar chat en tiempo real y notificaciones.
+**Objetivo**: Implementar chat en tiempo real, videollamadas y gestión de contactos.
 
-| Tarea                                                        | Responsable       | Estado |
-| ------------------------------------------------------------ | ----------------- | ------ |
-| Diseñar tabla messages en Supabase                           | Jennyfer Guayanay | ⬜     |
-| Servicio messages.ts con CRUD y suscripciones en tiempo real | Jennyfer Guayanay | ⬜     |
-| Página Messages con lista de chats                           | Michael Carrillo  | ⬜     |
-| Componente ChatView con burbujas de mensaje                  | Michael Carrillo  | ⬜     |
-| Indicador de "escribiendo..." y mensajes no leídos           | Michael Carrillo  | ⬜     |
+| Tarea                                                              | Responsable       | Estado |
+| ------------------------------------------------------------------ | ----------------- | ------ |
+| Migración 009: story_likes, story_replies, user_mutes              | Jennyfer Guayanay | ✅     |
+| Migración 010: conversations, messages, Realtime publication       | Jennyfer Guayanay | ✅     |
+| Servicio messages.ts con CRUD y suscripciones Realtime             | Michael Carrillo  | ✅     |
+| Página Messages con lista de chats + chat en tiempo real           | Michael Carrillo  | ✅     |
+| StoryViewer: like, reply (envía DM), share, mute, report, delete   | Michael Carrillo  | ✅     |
+| Emoji picker y selector de archivos en input de mensajes           | Michael Carrillo  | ✅     |
+| Sidebar: sub-items de Mensajes con badges de no leídos             | Michael Carrillo  | ✅     |
+| Profile: botón Mensaje en perfil ajeno                              | Michael Carrillo  | ✅     |
+| Búsqueda de usuarios para nuevo chat                               | Michael Carrillo  | ✅     |
+| Migración 011: friend_requests, archived_conversations             | Michael Carrillo  | ✅     |
+| Migración 012: read tracking (last_read_at)                        | Michael Carrillo  | ✅     |
+| Servicio friends.ts: solicitudes y archivado                       | Michael Carrillo  | ✅     |
+| Chat header: +Añadir amigo, menú Archivar/Desarchivar              | Michael Carrillo  | ✅     |
+| Messages tabs: recientes, archivados, solicitudes                  | Michael Carrillo  | ✅     |
+| VideoCallModal con ZegoCloud UIKit (video y voz)                   | Michael Carrillo  | ✅     |
+| Signaling vía Supabase Realtime Broadcast (llamada entrante)       | Michael Carrillo  | ✅     |
 
 ### Sprint 5: Pulido y Despliegue (Planificado)
 
@@ -400,3 +543,4 @@ npm run lint       # Verificación de código
 - La validación del dominio `@epn.edu.ec` se realiza con Zod en el cliente.
 - Toda la comunicación con Firebase y Supabase está cifrada mediante TLS/SSL.
 - RLS (Row Level Security) desactivado en producción por compatibilidad con Firebase Auth.
+- Las videollamadas usan `generateKitTokenForTest` (solo desarrollo); en producción debe reemplazarse por un endpoint propio que genere tokens firmados sin exponer `SERVER_SECRET` en el cliente.
