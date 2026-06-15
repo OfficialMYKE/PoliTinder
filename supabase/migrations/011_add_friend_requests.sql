@@ -131,7 +131,7 @@ DECLARE
   count INTEGER;
 BEGIN
   SELECT COUNT(*) INTO count FROM friend_requests
-  WHERE receiver_id = get_friend_request_count.receiver_id
+  WHERE friend_requests.receiver_id = get_friend_request_count.receiver_id
   AND status = 'pending';
   RETURN count;
 END;

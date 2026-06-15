@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { supabase } from "../services/supabase"
 import { getOrCreateConversation } from "../services/messages"
-import { VideoCallModal } from "../components/chat/VideoCallModal"
+import { useCallContext } from "../components/chat/CallHandler"
 import {
   getIncomingRequests, getFriendshipStatus, sendFriendRequest,
   acceptFriendRequest, rejectFriendRequest,
@@ -68,15 +68,10 @@ export default function Messages() {
   const tab = searchParams.get("tab") || "recientes"
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [callType, setCallType] = useState<string | null>(null)
-  const [incomingCallData, setIncomingCallData] = useState<{
-    callerName: string; callerID: string; callType: string; roomID: string
-  } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
-  const broadcastChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([])
   const [requestsLoading, setRequestsLoading] = useState(false)
@@ -176,25 +171,6 @@ export default function Messages() {
     })
     return unsub
   }, [currentUserId])
-
-  // ── Supabase Broadcast channel for incoming calls ──
-  useEffect(() => {
-    if (!selectedConv) return
-    const roomId = selectedConv.id
-    const channel = supabase.channel('room-' + roomId)
-    broadcastChannelRef.current = channel
-
-    channel.on('broadcast', { event: 'incoming_call' }, (payload) => {
-      setIncomingCallData(payload as { callerName: string; callerID: string; callType: string; roomID: string })
-    })
-
-    channel.subscribe()
-
-    return () => {
-      broadcastChannelRef.current = null
-      supabase.removeChannel(channel)
-    }
-  }, [selectedConv?.id])
 
   // ── Auto-scroll to bottom on new messages ──
   useEffect(() => {
@@ -298,20 +274,13 @@ export default function Messages() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
+  const callCtx = useCallContext()
+
   function goBack() { setSelectedConv(null); setMessages([]); setSendingError("") }
 
   function initiateCall(type: 'video' | 'voice') {
-    if (!selectedConv || !currentUserId) return
-    const callerName =
-      state.user?.firstName && state.user?.lastName
-        ? `${state.user.firstName} ${state.user.lastName}`
-        : "Usuario"
-    broadcastChannelRef.current?.send({
-      type: 'broadcast',
-      event: 'incoming_call',
-      payload: { callerName, callerID: currentUserId, callType: type, roomID: selectedConv.id },
-    })
-    setCallType(type)
+    if (!selectedConv || !currentUserId || !other?.id) return
+    callCtx?.initiateCall(other.id, selectedConv.id, type)
   }
 
   const other = selectedConv && currentUserId ? getOtherParticipant(selectedConv, currentUserId) : null
@@ -735,60 +704,6 @@ export default function Messages() {
                 </button>
               </div>
             </footer>
-
-            {callType && (
-              <VideoCallModal
-                callType={callType}
-                roomID={selectedConv.id}
-                userID={currentUserId}
-                userName={
-                  state.user?.firstName && state.user?.lastName
-                    ? `${state.user.firstName} ${state.user.lastName}`
-                    : "Usuario"
-                }
-                onClose={() => setCallType(null)}
-              />
-            )}
-
-            {/* ── Incoming call modal ── */}
-            {incomingCallData && incomingCallData.callerID !== currentUserId && (
-              <div className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-8 flex flex-col items-center text-center">
-                  <div className="w-20 h-20 rounded-full bg-[#487CFF]/20 flex items-center justify-center mb-5">
-                    {incomingCallData.callType === 'video' ? (
-                      <Video className="w-9 h-9 text-[#487CFF]" />
-                    ) : (
-                      <Phone className="w-9 h-9 text-[#487CFF]" />
-                    )}
-                  </div>
-                  <p className="text-lg font-semibold text-white mb-1">
-                    {incomingCallData.callerName}
-                  </p>
-                  <p className="text-sm text-zinc-400 mb-8">
-                    {incomingCallData.callType === 'video' ? 'Videollamada entrante...' : 'Llamada de voz entrante...'}
-                  </p>
-                  <div className="flex items-center gap-6">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCallType(incomingCallData.callType)
-                        setIncomingCallData(null)
-                      }}
-                      className="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg transition-colors cursor-pointer"
-                    >
-                      <Phone className="w-7 h-7" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIncomingCallData(null)}
-                      className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-colors cursor-pointer"
-                    >
-                      <X className="w-7 h-7" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center px-6">

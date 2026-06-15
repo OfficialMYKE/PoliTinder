@@ -24,6 +24,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext"
 import { ProtectedRoute } from "./components/common/ProtectedRoute"
 import { RoleRoute } from "./components/common/RoleRoute"
 import { AppLayout } from "./components/layouts/AppLayout"
+import { CallHandler } from "./components/chat/CallHandler"
 import { createStorageServices } from "./services/storage"
 import type { IOnboardingStorage } from "./services/storage"
 
@@ -83,9 +84,11 @@ function App() {
             path="/feed"
             element={
               <ProtectedRoute>
-                <AppLayout>
-                  <Feed />
-                </AppLayout>
+                <CallHandler>
+                  <AppLayout>
+                    <Feed />
+                  </AppLayout>
+                </CallHandler>
               </ProtectedRoute>
             }
           />
@@ -93,9 +96,9 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <ProfileRedirect />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </ProtectedRoute>
             }
           />
@@ -103,9 +106,9 @@ function App() {
             path="/profile/:userId"
             element={
               <ProtectedRoute>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <Profile />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </ProtectedRoute>
             }
           />
@@ -113,9 +116,9 @@ function App() {
             path="/matches"
             element={
               <ProtectedRoute>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <Matches />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </ProtectedRoute>
             }
           />
@@ -123,9 +126,9 @@ function App() {
             path="/messages"
             element={
               <ProtectedRoute>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <Messages />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </ProtectedRoute>
             }
           />
@@ -134,9 +137,9 @@ function App() {
             path="/admin/dashboard"
             element={
               <RoleRoute allowedRoles={["admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <AdminDashboard />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -144,9 +147,9 @@ function App() {
             path="/admin/users"
             element={
               <RoleRoute allowedRoles={["admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <AdminUsers />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -154,9 +157,9 @@ function App() {
             path="/admin/reports"
             element={
               <RoleRoute allowedRoles={["admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <AdminReports />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -164,9 +167,9 @@ function App() {
             path="/admin/settings"
             element={
               <RoleRoute allowedRoles={["admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <AdminSettings />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -176,9 +179,9 @@ function App() {
             path="/moderator/dashboard"
             element={
               <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <ModeratorDashboard />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -186,9 +189,9 @@ function App() {
             path="/moderator/reports"
             element={
               <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <ModeratorReports />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
@@ -196,9 +199,9 @@ function App() {
             path="/moderator/suspended"
             element={
               <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <AppLayout>
+                <CallHandler><AppLayout>
                   <SuspendedAccounts />
-                </AppLayout>
+                </AppLayout></CallHandler>
               </RoleRoute>
             }
           />
