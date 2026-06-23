@@ -288,13 +288,12 @@ JOIN entre `conversations`, `profiles` (ambos participantes) y `messages` (últi
 
 ```
 1. Usuario A hace clic en Video/Phone en el header del chat
-2. initiateCall(type) emite broadcast "incoming_call" vía Supabase Realtime
-3. Se monta VideoCallModal que importa dinámicamente ZegoCloud UIKit
-4. generateKitTokenForTest() genera token con APP_ID + SERVER_SECRET
-5. joinRoom() con turnOnCameraWhenJoining según el tipo
-6. Usuario B recibe el broadcast → modal "Llamada entrante"
-7. Al contestar: se monta VideoCallModal con la misma roomID
-8. Al colgar: onLeaveRoom → setCallType(null)
+2. initiateCall() envía "incoming_call" vía WebSocket al servidor de señalización
+3. Servidor reenvía a Usuario B → modal "Llamada entrante"
+4. Al contestar: ambos lados montan VideoCallModal con la misma roomID
+5. createWebRTCConnection() crea RTCPeerConnection con STUN de Google
+6. Señalización (offer/answer/ICE) viaja por WebSocket
+7. Al colgar: se envía "call_ended" al otro participante por WebSocket
 ```
 
 ## Flujo de Solicitudes de Amistad
@@ -368,7 +367,7 @@ PoliTinder/
 ├── client/                          # Frontend React SPA
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── chat/                # VideoCallModal (ZegoCloud)
+│   │   │   ├── chat/                # VideoCallModal (WebRTC + WebSocket)
 │   │   │   ├── layouts/             # Sidebar, AppLayout
 │   │   │   ├── onboarding/          # Componentes del onboarding
 │   │   │   ├── post/                # PostCard, PostComments, StoriesBar, StoryViewer
@@ -416,7 +415,7 @@ PoliTinder/
 | Zod                   | Validación de formularios         |
 | Vitest                | Testing                           |
 | Lucide React          | Iconos                            |
-| ZegoCloud UIKit       | Videollamadas (WebRTC)            |
+| WebSocket (servidor propio) | Señalización WebRTC (videollamadas) |
 
 ### 9. Configuración del Entorno
 
@@ -432,13 +431,18 @@ VITE_FIREBASE_APP_ID=xxx
 VITE_FIREBASE_MEASUREMENT_ID=xxx
 VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=xxx
-VITE_ZEGOCLOUD_APP_ID=1205149496
-VITE_ZEGOCLOUD_SERVER_SECRET=xxx
+VITE_WS_URL=ws://localhost:8080
 ```
 
 ### 10. Instalación y Ejecución
 
 ```bash
+# Servidor WebSocket (señalización WebRTC)
+cd server
+npm install
+npm run start      # (http://localhost:8080)
+
+# Cliente
 cd client
 npm install
 npm run dev        # Desarrollo (http://localhost:5173)
@@ -446,6 +450,8 @@ npm run build      # Producción
 npm run test       # Tests
 npm run lint       # Verificación de código
 ```
+
+> El servidor WebSocket de señalización es independiente del frontend. Debe ejecutarse en paralelo para que las videollamadas y llamadas de voz funcionen correctamente.
 
 ## Planificación por Sprints
 
@@ -543,4 +549,4 @@ npm run lint       # Verificación de código
 - La validación del dominio `@epn.edu.ec` se realiza con Zod en el cliente.
 - Toda la comunicación con Firebase y Supabase está cifrada mediante TLS/SSL.
 - RLS (Row Level Security) desactivado en producción por compatibilidad con Firebase Auth.
-- Las videollamadas usan `generateKitTokenForTest` (solo desarrollo); en producción debe reemplazarse por un endpoint propio que genere tokens firmados sin exponer `SERVER_SECRET` en el cliente.
+- Las videollamadas usan WebRTC nativo con señalización a través de un servidor WebSocket propio (`server/`).

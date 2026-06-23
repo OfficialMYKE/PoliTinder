@@ -1,4 +1,4 @@
-import { supabase } from "./supabase"
+import { send, onMessage } from "./ws"
 
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
@@ -17,7 +17,8 @@ export interface WebRTCCallbacks {
 
 export async function createWebRTCConnection(
   roomID: string,
-  _userID: string,
+  userID: string,
+  otherUserId: string,
   callType: "video" | "voice",
   isCaller: boolean,
   callbacks: WebRTCCallbacks,
@@ -25,73 +26,65 @@ export async function createWebRTCConnection(
   let destroyed = false
   let pc: RTCPeerConnection | null = null
   let localStream: MediaStream | null = null
-  let signalChannel: ReturnType<typeof supabase.channel> | null = null
-  const pendingSignals: any[] = []
+  const pendingSignals: Array<Record<string, unknown>> = []
 
-  async function cleanup() {
+  const cleanupFns: Array<() => void> = []
+
+  function cleanup() {
     destroyed = true
-    if (signalChannel) {
-      await supabase.removeChannel(signalChannel)
-      signalChannel = null
-    }
+    cleanupFns.forEach((fn) => fn())
+    cleanupFns.length = 0
     localStream?.getTracks().forEach((t) => t.stop())
     pc?.close()
     pc = null
     localStream = null
   }
 
-  async function sendSignal(data: unknown) {
-    if (!signalChannel || destroyed) return
-    await signalChannel.send({
-      type: "broadcast",
-      event: "webrtc_signal",
-      payload: { data },
-    })
-  }
-
-  function processPendingSignals() {
-    while (pendingSignals.length > 0 && pc) {
-      handleSignal(pendingSignals.shift())
-    }
-  }
-
-  async function handleSignal(data: any) {
-    if (!data || destroyed) return
+  async function handleSignal(signal: Record<string, unknown>) {
+    if (!signal || destroyed) return
     if (!pc) {
-      pendingSignals.push(data)
+      pendingSignals.push(signal)
       return
     }
 
     try {
-      if (data.type === "offer") {
+      if (signal.type === "offer") {
         if (pc.currentRemoteDescription) return
-        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp))
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp as RTCSessionDescriptionInit))
         const answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
-        sendSignal({ type: "answer", sdp: answer })
-      } else if (data.type === "answer") {
+        send({
+          type: "signal",
+          targetUserId: otherUserId,
+          roomID,
+          signal: { type: "answer", sdp: answer },
+        })
+      } else if (signal.type === "answer") {
         if (pc.currentRemoteDescription) return
-        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp))
-      } else if (data.type === "ice") {
-        await pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(() => {})
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp as RTCSessionDescriptionInit))
+      } else if (signal.type === "ice") {
+        await pc.addIceCandidate(new RTCIceCandidate(signal.candidate as RTCIceCandidateInit)).catch(() => {})
       }
     } catch (e: any) {
       if (!destroyed) callbacks.onError(e.message || "Error de señalización")
     }
   }
 
+  function processPendingSignals() {
+    while (pendingSignals.length > 0 && pc) {
+      handleSignal(pendingSignals.shift()!)
+    }
+  }
+
+  const unsubMessage = onMessage((data) => {
+    if (destroyed) return
+    if (data.type === "signal" && data.roomID === roomID) {
+      handleSignal(data.signal as Record<string, unknown>)
+    }
+  })
+  cleanupFns.push(unsubMessage)
+
   try {
-    signalChannel = supabase.channel(`webrtc-${roomID}`)
-
-    await new Promise<void>((resolve, reject) => {
-      signalChannel!.subscribe((status) => {
-        if (status === "SUBSCRIBED") resolve()
-        else if (status === "CHANNEL_ERROR") reject(new Error("No se pudo crear el canal"))
-      })
-    })
-
-    if (destroyed) { cleanup(); return cleanup }
-
     localStream = await navigator.mediaDevices.getUserMedia({
       video: callType === "video",
       audio: true,
@@ -109,7 +102,12 @@ export async function createWebRTCConnection(
 
     pc.onicecandidate = (e) => {
       if (e.candidate && !destroyed) {
-        sendSignal({ type: "ice", candidate: e.candidate.toJSON() })
+        send({
+          type: "signal",
+          targetUserId: otherUserId,
+          roomID,
+          signal: { type: "ice", candidate: e.candidate.toJSON() },
+        })
       }
     }
 
@@ -124,18 +122,17 @@ export async function createWebRTCConnection(
       }
     }
 
-    signalChannel.on("broadcast", { event: "webrtc_signal" }, (payload) => {
-      if (destroyed) return
-      const { data } = payload as unknown as { data: any }
-      handleSignal(data)
-    })
-
     processPendingSignals()
 
     if (isCaller) {
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
-      sendSignal({ type: "offer", sdp: offer })
+      send({
+        type: "signal",
+        targetUserId: otherUserId,
+        roomID,
+        signal: { type: "offer", sdp: offer },
+      })
     }
   } catch (e: any) {
     if (!destroyed) {

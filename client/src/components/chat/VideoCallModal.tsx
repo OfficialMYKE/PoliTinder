@@ -6,6 +6,7 @@ interface VideoCallModalProps {
   callType: "video" | "voice"
   roomID: string
   userID: string
+  otherUserId: string
   userName: string
   isCaller?: boolean
   onClose: () => void
@@ -15,6 +16,7 @@ export function VideoCallModal({
   callType,
   roomID,
   userID,
+  otherUserId,
   userName,
   isCaller = true,
   onClose,
@@ -34,6 +36,7 @@ export function VideoCallModal({
       const cleanup = await createWebRTCConnection(
         roomID,
         userID,
+        otherUserId,
         callType,
         isCaller,
         {
@@ -67,7 +70,7 @@ export function VideoCallModal({
       active = false
       if (cleanupRef.current) cleanupRef.current()
     }
-  }, [roomID, userID, callType, isCaller, onClose])
+  }, [roomID, userID, otherUserId, callType, isCaller, onClose])
 
   function toggleMic() {
     const video = localRef.current?.srcObject as MediaStream | null
