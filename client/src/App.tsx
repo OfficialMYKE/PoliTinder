@@ -58,158 +58,158 @@ function RootRedirect({ onboardingStorage }: { onboardingStorage: IOnboardingSto
 function App() {
   return (
     <AuthProvider tokenStorage={tokenStorage} userStorage={userStorage}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<RootRedirect onboardingStorage={onboardingStorage} />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoute>
-                <Onboarding onboardingStorage={onboardingStorage} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/welcome"
-            element={
-              <ProtectedRoute>
-                <Welcome onboardingStorage={onboardingStorage} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feed"
-            element={
-              <ProtectedRoute>
-                <CallHandler>
+      <CallHandler>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<RootRedirect onboardingStorage={onboardingStorage} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding onboardingStorage={onboardingStorage} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/welcome"
+              element={
+                <ProtectedRoute>
+                  <Welcome onboardingStorage={onboardingStorage} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feed"
+              element={
+                <ProtectedRoute>
                   <AppLayout>
                     <Feed />
                   </AppLayout>
-                </CallHandler>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <CallHandler><AppLayout>
-                  <ProfileRedirect />
-                </AppLayout></CallHandler>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile/:userId"
-            element={
-              <ProtectedRoute>
-                <CallHandler><AppLayout>
-                  <Profile />
-                </AppLayout></CallHandler>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/matches"
-            element={
-              <ProtectedRoute>
-                <CallHandler><AppLayout>
-                  <Matches />
-                </AppLayout></CallHandler>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/messages"
-            element={
-              <ProtectedRoute>
-                <CallHandler><AppLayout>
-                  <Messages />
-                </AppLayout></CallHandler>
-              </ProtectedRoute>
-            }
-          />
-          {/* Rutas de Administrador */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <RoleRoute allowedRoles={["admin"]}>
-                <CallHandler><AppLayout>
-                  <AdminDashboard />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <RoleRoute allowedRoles={["admin"]}>
-                <CallHandler><AppLayout>
-                  <AdminUsers />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <RoleRoute allowedRoles={["admin"]}>
-                <CallHandler><AppLayout>
-                  <AdminReports />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <RoleRoute allowedRoles={["admin"]}>
-                <CallHandler><AppLayout>
-                  <AdminSettings />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ProfileRedirect />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:userId"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Profile />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matches"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Matches />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Messages />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            {/* Rutas de Administrador */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <RoleRoute allowedRoles={["admin"]}>
+                  <AppLayout>
+                    <AdminDashboard />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <RoleRoute allowedRoles={["admin"]}>
+                  <AppLayout>
+                    <AdminUsers />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <RoleRoute allowedRoles={["admin"]}>
+                  <AppLayout>
+                    <AdminReports />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <RoleRoute allowedRoles={["admin"]}>
+                  <AppLayout>
+                    <AdminSettings />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
 
-          {/* Rutas de Moderador */}
-          <Route
-            path="/moderator/dashboard"
-            element={
-              <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <CallHandler><AppLayout>
-                  <ModeratorDashboard />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="/moderator/reports"
-            element={
-              <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <CallHandler><AppLayout>
-                  <ModeratorReports />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="/moderator/suspended"
-            element={
-              <RoleRoute allowedRoles={["moderator", "admin"]}>
-                <CallHandler><AppLayout>
-                  <SuspendedAccounts />
-                </AppLayout></CallHandler>
-              </RoleRoute>
-            }
-          />
+            {/* Rutas de Moderador */}
+            <Route
+              path="/moderator/dashboard"
+              element={
+                <RoleRoute allowedRoles={["moderator", "admin"]}>
+                  <AppLayout>
+                    <ModeratorDashboard />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/moderator/reports"
+              element={
+                <RoleRoute allowedRoles={["moderator", "admin"]}>
+                  <AppLayout>
+                    <ModeratorReports />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/moderator/suspended"
+              element={
+                <RoleRoute allowedRoles={["moderator", "admin"]}>
+                  <AppLayout>
+                    <SuspendedAccounts />
+                  </AppLayout>
+                </RoleRoute>
+              }
+            />
 
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+          </Routes>
+        </BrowserRouter>
+      </CallHandler>
     </AuthProvider>
   )
 }

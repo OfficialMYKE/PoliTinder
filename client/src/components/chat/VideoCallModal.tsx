@@ -1,3 +1,11 @@
+/**
+ * Modal de videollamada o llamada de voz
+ *
+ * Gestiona la interfaz de la llamada activa: video local/remoto,
+ * controles de micrófono y cámara, y estado de conexión.
+ * La señalización WebRTC se delega a createWebRTCConnection.
+ */
+
 import { useEffect, useRef, useState } from "react"
 import { X, Phone, Video, Mic, MicOff, VideoOff } from "lucide-react"
 import { createWebRTCConnection } from "../../services/webrtc"
@@ -6,7 +14,6 @@ interface VideoCallModalProps {
   callType: "video" | "voice"
   roomID: string
   userID: string
-  otherUserId: string
   userName: string
   isCaller?: boolean
   onClose: () => void
@@ -16,7 +23,6 @@ export function VideoCallModal({
   callType,
   roomID,
   userID,
-  otherUserId,
   userName,
   isCaller = true,
   onClose,
@@ -29,6 +35,7 @@ export function VideoCallModal({
   const [error, setError] = useState<string | null>(null)
   const [connecting, setConnecting] = useState(true)
 
+  // Inicia la conexión WebRTC al montar el componente
   useEffect(() => {
     let active = true
 
@@ -36,22 +43,25 @@ export function VideoCallModal({
       const cleanup = await createWebRTCConnection(
         roomID,
         userID,
-        otherUserId,
         callType,
         isCaller,
         {
+          /** Stream local (cámara propia) */
           onLocalStream: (stream) => {
             if (!active) { stream.getTracks().forEach((t) => t.stop()); return }
             if (localRef.current) localRef.current.srcObject = stream
           },
+          /** Stream remoto (cámara del otro usuario) */
           onRemoteStream: (stream) => {
             if (!active) return
             if (remoteRef.current) remoteRef.current.srcObject = stream
           },
+          /** El otro usuario colgó o se perdió la conexión */
           onDisconnect: () => {
             if (!active) return
             onClose()
           },
+          /** Error de conexión o permisos */
           onError: (msg) => {
             if (!active) return
             setError(msg)
@@ -66,12 +76,14 @@ export function VideoCallModal({
 
     start()
 
+    // Limpia la conexión al desmontar el componente
     return () => {
       active = false
       if (cleanupRef.current) cleanupRef.current()
     }
-  }, [roomID, userID, otherUserId, callType, isCaller, onClose])
+  }, [roomID, userID, callType, isCaller, onClose])
 
+  /** Alterna el micrófono (mute/unmute) */
   function toggleMic() {
     const video = localRef.current?.srcObject as MediaStream | null
     if (!video) return
@@ -81,6 +93,7 @@ export function VideoCallModal({
     setMicOn((m) => !m)
   }
 
+  /** Alterna la cámara (encendida/apagada) */
   function toggleCam() {
     const video = localRef.current?.srcObject as MediaStream | null
     if (!video) return
