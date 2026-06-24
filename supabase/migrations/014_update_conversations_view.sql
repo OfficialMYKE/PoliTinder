@@ -1,4 +1,8 @@
--- Actualiza la vista de conversaciones para incluir last_seen_at de cada participante
+-- Migración 014: Actualiza conversations_with_last_message con last_seen_at
+-- Agrega los campos participant1_last_seen_at y participant2_last_seen_at
+-- a la vista de conversaciones para mostrar en el frontend cuándo fue la
+-- última conexión de cada participante.
+
 DROP VIEW IF EXISTS conversations_with_last_message;
 
 CREATE VIEW conversations_with_last_message AS

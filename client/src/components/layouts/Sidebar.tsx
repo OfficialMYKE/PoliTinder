@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   House,
   User,
@@ -15,81 +15,92 @@ import {
   Settings,
   Archive,
   UserPlus,
-} from "lucide-react"
-import { useAuth } from "../../contexts/AuthContext"
-import { getProfile } from "../../services/profile"
-import { getFriendRequestCount } from "../../services/friends"
-import { getConversations } from "../../services/messages"
-import type { ConversationWithLastMessage } from "../../types/message"
-import { hasUnreadMessages } from "../../services/friends"
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { getProfile } from "../../services/profile";
+import { getFriendRequestCount } from "../../services/friends";
+import { getConversations } from "../../services/messages";
+import type { ConversationWithLastMessage } from "../../types/message";
+import { hasUnreadMessages } from "../../services/friends";
 
-const PERFIL_SUB_ITEMS = [
-  "Informacion de seguridad",
-  "Cambiar contrasena",
-  "Configuracion y privacidad",
-]
+const PERFIL_SUB_ITEMS = ["Cambiar contrasena", "Configuracion y privacidad"];
 
 const MATCHES_SUB_ITEMS = [
   "Nuevos matches",
   "Solicitudes enviadas",
   "Perfiles bloqueados",
-]
+];
 
 const GRUPOS_SUB_ITEMS = [
   "Mis grupos actuales",
   "Explorar grupos",
   "Invitaciones pendientes",
-]
+];
 
 const MENSAJES_SUB_ITEMS = [
   "Chats recientes",
   "Archivados",
   "Solicitudes de mensaje",
-]
+];
 
 const SUB_ITEM_CLASS =
-  "flex w-full items-center px-4 py-2 pl-12 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-[#106ebe]"
+  "flex w-full items-center px-4 py-2 pl-12 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-[#106ebe]";
 
 function getInitials(first: string, last: string): string {
-  return `${(first?.charAt(0) ?? "").toUpperCase()}${(last?.charAt(0) ?? "").toUpperCase()}` || "?"
+  return (
+    `${(first?.charAt(0) ?? "").toUpperCase()}${(last?.charAt(0) ?? "").toUpperCase()}` ||
+    "?"
+  );
 }
 
-export function Sidebar() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { state: authState, logout } = useAuth()
-  const user = authState.user
+interface SidebarProps {
+  /** Se llama al navegar para cerrar la sidebar en móvil */
+  onClose?: () => void
+}
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [perfilOpen, setPerfilOpen] = useState(true)
-  const [matchesOpen, setMatchesOpen] = useState(true)
-  const [gruposOpen, setGruposOpen] = useState(true)
-  const [mensajesOpen, setMensajesOpen] = useState(true)
-  const [pendingRequests, setPendingRequests] = useState(0)
-  const [unreadCount, setUnreadCount] = useState(0)
+export function Sidebar({ onClose }: SidebarProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state: authState, logout } = useAuth();
+  const user = authState.user;
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [perfilOpen, setPerfilOpen] = useState(true);
+  const [matchesOpen, setMatchesOpen] = useState(true);
+  const [gruposOpen, setGruposOpen] = useState(true);
+  const [mensajesOpen, setMensajesOpen] = useState(true);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id) return;
     async function load() {
-      const count = await getFriendRequestCount(user.id)
-      setPendingRequests(count)
-      const convs = await getConversations(user.id)
-      const unread = convs.filter((c: ConversationWithLastMessage) => hasUnreadMessages(c, user.id)).length
-      setUnreadCount(unread)
+      const count = await getFriendRequestCount(user.id);
+      setPendingRequests(count);
+      const convs = await getConversations(user.id);
+      const unread = convs.filter((c: ConversationWithLastMessage) =>
+        hasUnreadMessages(c, user.id),
+      ).length;
+      setUnreadCount(unread);
     }
-    load()
+    load();
     getProfile(user.id)
       .then((p) => {
-        if (p?.avatar_url) setAvatarUrl(p.avatar_url)
+        if (p?.avatar_url) setAvatarUrl(p.avatar_url);
       })
-      .catch(() => {})
-  }, [user?.id])
+      .catch(() => {});
+  }, [user?.id]);
 
-  const firstName = user?.firstName ?? ""
-  const lastName = user?.lastName ?? ""
-  const email = user?.email ?? ""
-  const fullName = `${firstName} ${lastName}`.trim()
-  const initials = getInitials(firstName, lastName)
+  const firstName = user?.firstName ?? "";
+  const lastName = user?.lastName ?? "";
+  const email = user?.email ?? "";
+  const fullName = `${firstName} ${lastName}`.trim();
+  const initials = getInitials(firstName, lastName);
+
+  function nav(path: string) {
+    navigate(path)
+    onClose?.()
+  }
 
   return (
     <aside className="flex h-full w-60 flex-col bg-[#faf9f8] dark:bg-zinc-950">
@@ -117,11 +128,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto space-y-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+      <nav
+        className="flex-1 overflow-y-auto space-y-1 [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: "none" }}
+      >
         {/* Inicio */}
         <button
           type="button"
-          onClick={() => navigate("/feed")}
+          onClick={() => nav("/feed")}
           className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
             location.pathname === "/feed"
               ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -133,7 +147,9 @@ export function Sidebar() {
           )}
           <House
             className={`h-[18px] w-[18px] ${
-              location.pathname === "/feed" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
+              location.pathname === "/feed"
+                ? "text-[#106ebe]"
+                : "text-slate-500 dark:text-zinc-400"
             }`}
           />
           Inicio
@@ -144,8 +160,8 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => {
-              setPerfilOpen(!perfilOpen)
-              navigate(`/profile/${user?.id}`)
+              setPerfilOpen(!perfilOpen);
+              nav(`/profile/${user?.id}`);
             }}
             className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
               location.pathname === "/profile"
@@ -158,7 +174,9 @@ export function Sidebar() {
             )}
             <User
               className={`h-[18px] w-[18px] ${
-                location.pathname === "/profile" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
+                location.pathname === "/profile"
+                  ? "text-[#106ebe]"
+                  : "text-slate-500 dark:text-zinc-400"
               }`}
             />
             <span className="flex-1 text-left">Mi Perfil</span>
@@ -239,8 +257,8 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => {
-              setMensajesOpen(!mensajesOpen)
-              navigate("/messages")
+              setMensajesOpen(!mensajesOpen);
+              nav("/messages");
             }}
             className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
               location.pathname === "/messages"
@@ -253,7 +271,9 @@ export function Sidebar() {
             )}
             <MessageSquare
               className={`h-[18px] w-[18px] ${
-                location.pathname === "/messages" ? "text-[#106ebe]" : "text-slate-500 dark:text-zinc-400"
+                location.pathname === "/messages"
+                  ? "text-[#106ebe]"
+                  : "text-slate-500 dark:text-zinc-400"
               }`}
             />
             <span className="flex-1 text-left">Mensajes</span>
@@ -268,19 +288,19 @@ export function Sidebar() {
             <div className="pb-1">
               <button
                 type="button"
-                onClick={() => navigate("/messages?tab=recientes")}
+                onClick={() => nav("/messages?tab=recientes")}
                 className={SUB_ITEM_CLASS + " relative"}
               >
-                  <span className="flex items-center gap-2">
-                    Chats recientes
-                    {unreadCount > 0 && (
-                      <span className="w-2 h-2 rounded-full bg-[#487CFF] shrink-0" />
-                    )}
-                  </span>
+                <span className="flex items-center gap-2">
+                  Chats recientes
+                  {unreadCount > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-[#487CFF] shrink-0" />
+                  )}
+                </span>
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/messages?tab=archivados")}
+                onClick={() => nav("/messages?tab=archivados")}
                 className={SUB_ITEM_CLASS}
               >
                 <span className="flex items-center gap-2">
@@ -290,7 +310,7 @@ export function Sidebar() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/messages?tab=solicitudes")}
+                onClick={() => nav("/messages?tab=solicitudes")}
                 className={SUB_ITEM_CLASS + " relative"}
               >
                 <span className="flex items-center gap-2">
@@ -315,7 +335,7 @@ export function Sidebar() {
             </p>
             <button
               type="button"
-              onClick={() => navigate("/admin/dashboard")}
+              onClick={() => nav("/admin/dashboard")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/dashboard")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -327,7 +347,7 @@ export function Sidebar() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/admin/users")}
+              onClick={() => nav("/admin/users")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/users")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -339,7 +359,7 @@ export function Sidebar() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/admin/reports")}
+              onClick={() => nav("/admin/reports")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/reports")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -351,7 +371,7 @@ export function Sidebar() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/admin/settings")}
+              onClick={() => nav("/admin/settings")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/admin/settings")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -365,14 +385,15 @@ export function Sidebar() {
         )}
 
         {/* Panel de Moderador — visible para moderator y admin */}
-        {(authState.user?.role === "moderator" || authState.user?.role === "admin") && (
+        {(authState.user?.role === "moderator" ||
+          authState.user?.role === "admin") && (
           <div className="border-t border-slate-200 dark:border-zinc-800 pt-2">
             <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
               Moderación
             </p>
             <button
               type="button"
-              onClick={() => navigate("/moderator/dashboard")}
+              onClick={() => nav("/moderator/dashboard")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/dashboard")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -384,7 +405,7 @@ export function Sidebar() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/moderator/reports")}
+              onClick={() => nav("/moderator/reports")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/reports")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -396,7 +417,7 @@ export function Sidebar() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/moderator/suspended")}
+              onClick={() => nav("/moderator/suspended")}
               className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
                 location.pathname.startsWith("/moderator/suspended")
                   ? "font-semibold text-slate-900 dark:text-zinc-100"
@@ -414,8 +435,8 @@ export function Sidebar() {
       <button
         type="button"
         onClick={() => {
-          logout()
-          navigate("/login")
+          logout();
+          nav("/login");
         }}
         className="flex w-full items-center gap-3 border-t border-slate-200 dark:border-zinc-800 px-4 py-3 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
       >
@@ -423,5 +444,5 @@ export function Sidebar() {
         Cerrar sesion
       </button>
     </aside>
-  )
+  );
 }

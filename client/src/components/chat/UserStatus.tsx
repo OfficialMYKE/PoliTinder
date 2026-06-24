@@ -1,8 +1,15 @@
 /**
  * Indicador de estado de un usuario (en línea, ocupado, ausente)
  *
- * Muestra un punto de color + texto descriptivo.
- * Si está offline y se proporciona last_seen_at, muestra "Visto hace X tiempo".
+ * Muestra un punto de color + texto descriptivo según el estado actual:
+ *   🟢 "En línea"    → usuario conectado y disponible
+ *   🟡 "En llamada"  → usuario en videollamada o llamada de voz
+ *   ⚫ "Visto hace X" → usuario desconectado, con timestamp relativo
+ *
+ * Props:
+ *   - showDot:   muestra el punto de color (útil como overlay en avatares)
+ *   - showText:  muestra el texto descriptivo
+ *   - lastSeenAt: fecha ISO de última conexión (se muestra si está offline)
  */
 
 import { usePresence, type UserPresence } from "../../contexts/PresenceContext"
@@ -15,6 +22,16 @@ interface UserStatusProps {
   className?: string
 }
 
+/**
+ * Formatea una fecha ISO a texto relativo en español
+ *
+ * Ejemplos:
+ *   "Ahora"                     → < 1 minuto
+ *   "Visto hace 5 min"          → 1-59 minutos
+ *   "Visto hace 3h"             → 1-23 horas
+ *   "Visto hace 2 días"         → 1-6 días
+ *   "Visto el 15 mar"           → ≥ 7 días
+ */
 function formatLastSeen(dateStr: string): string {
   const now = Date.now()
   const date = new Date(dateStr).getTime()
@@ -30,15 +47,25 @@ function formatLastSeen(dateStr: string): string {
   return `Visto el ${new Date(dateStr).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}`
 }
 
-export function UserStatus({ userId, lastSeenAt, showDot = true, showText = true, className = "" }: UserStatusProps) {
+export function UserStatus({
+  userId,
+  lastSeenAt,
+  showDot = true,
+  showText = true,
+  className = "",
+}: UserStatusProps) {
   const presence = usePresence()
   const userPresence = presence.getUser(userId)
 
+  // Estado: desconectado (no está en el canal de presencia)
   if (userPresence.status === "offline") {
     return (
       <span className={`flex items-center gap-1 text-xs ${className}`}>
         {showDot && (
-          <span className="w-2 h-2 rounded-full bg-zinc-400 inline-block shrink-0" title="Desconectado" />
+          <span
+            className="w-2 h-2 rounded-full bg-zinc-400 inline-block shrink-0"
+            title="Desconectado"
+          />
         )}
         {showText && (
           <span className="text-zinc-400">
@@ -49,11 +76,15 @@ export function UserStatus({ userId, lastSeenAt, showDot = true, showText = true
     )
   }
 
+  // Estado: en llamada
   if (userPresence.status === "in_call") {
     return (
       <span className={`flex items-center gap-1 text-xs ${className}`}>
         {showDot && (
-          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block shrink-0" title="En llamada" />
+          <span
+            className="w-2 h-2 rounded-full bg-amber-400 inline-block shrink-0"
+            title="En llamada"
+          />
         )}
         {showText && (
           <span className="text-amber-400">En llamada</span>
@@ -62,11 +93,14 @@ export function UserStatus({ userId, lastSeenAt, showDot = true, showText = true
     )
   }
 
-  // available / online
+  // Estado: en línea y disponible
   return (
     <span className={`flex items-center gap-1 text-xs ${className}`}>
       {showDot && (
-        <span className="w-2 h-2 rounded-full bg-green-500 inline-block shrink-0" title="En línea" />
+        <span
+          className="w-2 h-2 rounded-full bg-green-500 inline-block shrink-0"
+          title="En línea"
+        />
       )}
       {showText && (
         <span className="text-green-500">En línea</span>
