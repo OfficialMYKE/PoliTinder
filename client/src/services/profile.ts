@@ -40,6 +40,7 @@ export async function getProfile(userId: string): Promise<ProfileData | null> {
     bio: data.bio ?? "",
     study_styles: data.study_styles ?? [],
     interests: data.interests ?? [],
+    last_seen_at: data.last_seen_at ?? null,
     created_at: data.created_at,
     updated_at: data.updated_at,
   }

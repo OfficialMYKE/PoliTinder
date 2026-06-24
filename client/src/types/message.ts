@@ -13,6 +13,8 @@ export interface ConversationWithLastMessage extends Conversation {
   participant2_avatar: string | null
   participant1_last_read_at: string | null
   participant2_last_read_at: string | null
+  participant1_last_seen_at: string | null
+  participant2_last_seen_at: string | null
   last_message_id: string | null
   last_message_content: string | null
   last_message_sender_id: string | null

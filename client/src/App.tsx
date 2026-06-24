@@ -25,6 +25,7 @@ import { ProtectedRoute } from "./components/common/ProtectedRoute"
 import { RoleRoute } from "./components/common/RoleRoute"
 import { AppLayout } from "./components/layouts/AppLayout"
 import { CallHandler } from "./components/chat/CallHandler"
+import { PresenceProvider } from "./contexts/PresenceContext"
 import { createStorageServices } from "./services/storage"
 import type { IOnboardingStorage } from "./services/storage"
 
@@ -58,6 +59,7 @@ function RootRedirect({ onboardingStorage }: { onboardingStorage: IOnboardingSto
 function App() {
   return (
     <AuthProvider tokenStorage={tokenStorage} userStorage={userStorage}>
+      <PresenceProvider>
       <CallHandler>
         <BrowserRouter>
           <Routes>
@@ -210,6 +212,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </CallHandler>
+      </PresenceProvider>
     </AuthProvider>
   )
 }

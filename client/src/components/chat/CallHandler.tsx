@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState, createContext, useContext, useCallback } from "react"
 import { supabase } from "../../services/supabase"
 import { useAuth } from "../../contexts/AuthContext"
+import { presenceService } from "../../services/presence"
 import { VideoCallModal } from "./VideoCallModal"
 import { Video, Phone, X } from "lucide-react"
 
@@ -66,6 +67,7 @@ export function CallHandler({ children }: { children: React.ReactNode }) {
     setActiveRoomID(roomID)
     setIsCaller(true)
     setCallType(type)
+    presenceService.setStatus("in_call")
 
     const callerName =
       user?.firstName && user?.lastName
@@ -90,6 +92,7 @@ export function CallHandler({ children }: { children: React.ReactNode }) {
     setIsCaller(false)
     setCallType(incoming.callType)
     setIncoming(null)
+    presenceService.setStatus("in_call")
   }
 
   /** Cierra el modal de llamada activa y resetea el estado */
@@ -97,6 +100,7 @@ export function CallHandler({ children }: { children: React.ReactNode }) {
     setCallType(null)
     setActiveRoomID(null)
     setIncoming(null)
+    presenceService.setStatus("available")
   }
 
   return (

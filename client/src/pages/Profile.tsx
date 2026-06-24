@@ -11,6 +11,7 @@ import { Button } from "../components/ui/button"
 import { getFriendshipStatus, sendFriendRequest } from "../services/friends"
 import { EditProfile } from "../components/profile/EditProfile"
 import { PostCard } from "../components/post/PostCard"
+import { UserStatus } from "../components/chat/UserStatus"
 import { FACULTIES } from "../data/academicData"
 import type { ProfileData } from "../types/profile"
 import type { PostWithProfile } from "../types/post"
@@ -247,6 +248,11 @@ export default function Profile() {
               <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider truncate">
                 {nickname}
               </h1>
+              {profile && !isOwnProfile && profile.id && (
+                <div className="mt-1">
+                  <UserStatus userId={profile.id} lastSeenAt={profile.last_seen_at} />
+                </div>
+              )}
               {profile && (
                 <>
                   <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-400 truncate">
