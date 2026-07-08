@@ -31,7 +31,9 @@ import {
   UserPlus,
   Check,
   XCircle,
+  Bot,
 } from "lucide-react";
+import ChatBot from "../components/chat/ChatBot";
 import { supabase } from "../services/supabase";
 import { getOrCreateConversation } from "../services/messages";
 import { useCallContext } from "../components/chat/CallHandler";
@@ -250,6 +252,7 @@ export default function Messages() {
   >("none");
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const headerMenuRef = useRef<HTMLDivElement>(null);
+  const [chatBotActive, setChatBotActive] = useState(false);
 
   // ── Load conversations ──
   useEffect(() => {
@@ -426,6 +429,7 @@ export default function Messages() {
   // ── Select conversation ──
   const selectConversation = useCallback(
     async (conv: ConversationWithLastMessage) => {
+      setChatBotActive(false);
       setSelectedConv(conv);
       setMessages([]);
       setSendingError("");
@@ -707,6 +711,35 @@ export default function Messages() {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {/* Chatbot entry */}
+                  {!search.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChatBotActive(true);
+                        setSelectedConv(null);
+                      }}
+                      className={`w-full text-left px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors ${
+                        chatBotActive
+                          ? "bg-zinc-100 dark:bg-zinc-800"
+                          : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#487CFF] shrink-0 flex items-center justify-center">
+                          <Bot className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm font-medium text-zinc-900 dark:text-white block">
+                            PoliBot
+                          </span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400 block truncate">
+                            Asistente de PoliTinder
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  )}
                   {filtered.map((conv) => {
                     const profile = getOtherParticipant(conv, currentUserId!);
                     const isLastFromMe =
@@ -777,9 +810,15 @@ export default function Messages() {
 
       {/* ── Chat view ── */}
       <div
-        className={`flex-1 flex flex-col bg-white dark:bg-zinc-950 ${!selectedConv ? "hidden md:flex" : "flex"}`}
+        className={`flex-1 flex flex-col bg-white dark:bg-zinc-950 ${!selectedConv && !chatBotActive ? "hidden md:flex" : "flex"}`}
       >
-        {selectedConv && other ? (
+        {chatBotActive ? (
+          <ChatBot
+            onBack={() => {
+              setChatBotActive(false);
+            }}
+          />
+        ) : selectedConv && other ? (
           <>
             {/* ── Chat header with status and actions ── */}
             <header className="sticky top-0 z-10 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center gap-3">
