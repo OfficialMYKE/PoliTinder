@@ -11,6 +11,10 @@ import Messages from "./pages/Messages"
 import Terms from "./pages/Terms"
 import Privacy from "./pages/Privacy"
 
+import Premium from "./pages/Premium";
+import Success from "./pages/Success";
+import Cancel from "./pages/Cancel";
+
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminUsers from "./pages/admin/Users"
 import AdminReports from "./pages/admin/Reports"
@@ -129,6 +133,36 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Messages />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/premium"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Premium />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/success"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Success />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cancel"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Cancel />
                   </AppLayout>
                 </ProtectedRoute>
               }
