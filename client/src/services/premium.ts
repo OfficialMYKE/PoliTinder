@@ -122,3 +122,21 @@ export async function getUserPremiumStatus(
     return { isPremium: false, plan: null }
   }
 }
+
+export async function cancelPremium(
+  userId: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_URL}/api/stripe/cancel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || "Error al cancelar premium")
+  }
+
+  return data
+}

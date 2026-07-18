@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Crown, Loader2, Sparkles, Shield, Zap, AlertCircle } from "lucide-react"
+import { Crown, Loader2, Sparkles, Shield, Zap, AlertCircle, XCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "../contexts/AuthContext"
 import { PricingCard } from "../components/ui/pricing-card"
@@ -7,6 +7,7 @@ import {
   PREMIUM_PLANS,
   createCheckoutSession,
   getUserPremiumStatus,
+  cancelPremium,
 } from "../services/premium"
 
 const containerVariants = {
@@ -29,6 +30,8 @@ export default function Premium() {
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [currentPlan, setCurrentPlan] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   useEffect(() => {
     async function loadStatus() {
@@ -56,6 +59,24 @@ export default function Premium() {
       const message = err instanceof Error ? err.message : "Error al procesar el pago"
       setError(message)
       setPurchasing(null)
+    }
+  }
+
+  async function handleCancelPremium() {
+    if (!user?.id) return
+
+    setCancelling(true)
+    setError(null)
+
+    try {
+      await cancelPremium(user.id)
+      setCurrentPlan(null)
+      setShowCancelConfirm(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al cancelar premium"
+      setError(message)
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -184,6 +205,40 @@ export default function Premium() {
             ))}
           </motion.div>
 
+          {/* Estado actual del plan */}
+          {currentPlan && currentPlan !== "basic" && (
+            <motion.div variants={itemVariants} className="mt-12">
+              <div className="max-w-md mx-auto p-6 rounded-2xl border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                    <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                      Tu plan actual
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      {currentPlan === "premium_plus" ? "Premium+" : "Premium"} activo
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelling}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-red-200 dark:border-red-800 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50"
+                >
+                  {cancelling ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <XCircle className="h-4 w-4" />
+                  )}
+                  Cancelar suscripción
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* FAQ */}
           <motion.div variants={itemVariants} className="mt-16 max-w-2xl mx-auto">
             <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 text-center mb-6">
@@ -233,6 +288,51 @@ export default function Premium() {
               Serás redirigido a Stripe para completar tu compra
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de cancelación */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-xl"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <XCircle className="h-5 w-5 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-zinc-100">
+                Cancelar suscripción
+              </h3>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-zinc-400 mb-6">
+              ¿Estás seguro de que quieres cancelar tu plan premium? Perderás acceso a todas las ventajas de tu plan actual.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={cancelling}
+                className="flex-1 inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-zinc-300 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-700"
+              >
+                Mantener plan
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelPremium}
+                disabled={cancelling}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                {cancelling ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Cancelar plan"
+                )}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>
