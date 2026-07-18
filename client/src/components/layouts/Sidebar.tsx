@@ -153,7 +153,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                 : "text-slate-500 dark:text-zinc-400"
             }`}
           />
-          Inicio
+          Inicio  
         </button>
 
         {/* Mi Perfil — active */}
@@ -198,16 +198,34 @@ export function Sidebar({ onClose }: SidebarProps) {
             </div>
           )}
         </div>
-
         {/* Mis Matches */}
         <div>
           <button
             type="button"
-            onClick={() => setMatchesOpen(!matchesOpen)}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 dark:text-zinc-300 transition-colors hover:text-[#106ebe]"
+            onClick={() => {
+              setMatchesOpen(!matchesOpen)
+              nav("/matches")
+            }}
+            className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
+              location.pathname === "/matches"
+                ? "font-semibold text-slate-900 dark:text-zinc-100"
+                : "font-normal text-slate-700 dark:text-zinc-300"
+            }`}
           >
-            <Heart className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
+            {location.pathname === "/matches" && (
+              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
+            )}
+
+            <Heart
+              className={`h-[18px] w-[18px] ${
+                location.pathname === "/matches"
+                  ? "text-[#106ebe]"
+                  : "text-slate-500 dark:text-zinc-400"
+              }`}
+            />
+
             <span className="flex-1 text-left">Mis Matches</span>
+
             {matchesOpen ? (
               <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
             ) : (
@@ -218,7 +236,16 @@ export function Sidebar({ onClose }: SidebarProps) {
           {matchesOpen && (
             <div className="pb-1">
               {MATCHES_SUB_ITEMS.map((item) => (
-                <button key={item} type="button" className={SUB_ITEM_CLASS}>
+                <button
+                  key={item}
+                  type="button"
+                  className={SUB_ITEM_CLASS}
+                  onClick={() => {
+                    if (item === "Nuevos matches") {
+                      nav("/matches")
+                    }
+                  }}
+                >
                   {item}
                 </button>
               ))}

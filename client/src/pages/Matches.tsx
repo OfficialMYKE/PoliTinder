@@ -3,6 +3,12 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../contexts/AuthContext"
 import { getPotentialMatches } from "../services/profile"
 import { getProfile } from "../services/profile"
+import {
+  giveLike,
+  giveDislike,
+  checkMatch,
+  createMatch,
+} from "../services/match"
 import type { ProfileData } from "../types/profile"
 
 const STUDY_STYLE_LABELS: Record<string, string> = {
@@ -51,9 +57,41 @@ export default function Matches() {
 
   const currentProfile = profiles[currentIndex]
 
-  function handleSwipe(direction: "left" | "right") {
-    setCurrentIndex((i) => i + 1)
+async function handleSwipe(direction: "left" | "right") {
+  if (!authState.user?.id || !currentProfile) return
+
+  if (direction === "right") {
+    const likeSaved = await giveLike(
+      authState.user.id,
+      currentProfile.id,
+    )
+
+    if (likeSaved) {
+      const isMatch = await checkMatch(
+        authState.user.id,
+        currentProfile.id,
+      )
+
+      if (isMatch) {
+        const matchCreated = await createMatch(
+          authState.user.id,
+          currentProfile.id,
+        )
+
+        if (matchCreated) {
+          alert(`🎉 ¡Has hecho Match con ${currentProfile.nickname}!`)
+        }
+      }
+    }
+  } else {
+    await giveDislike(
+      authState.user.id,
+      currentProfile.id,
+    )
   }
+
+  setCurrentIndex((i) => i + 1)
+}
 
   if (loading) {
     return (
@@ -68,7 +106,7 @@ export default function Matches() {
       <div className="flex flex-col min-h-full">
         <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
           <div className="max-w-md mx-auto">
-            <h1 className="text-lg font-semibold text-slate-900">Matches</h1>
+            <h1 className="text-3xl font-bold text-red-600"> ESTA ES MI PÁGINA MATCHES </h1>
           </div>
         </header>
         <div className="flex-1 flex items-center justify-center px-6">
@@ -93,7 +131,7 @@ export default function Matches() {
     <div className="flex flex-col min-h-full">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
         <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-slate-900">Matches</h1>
+          <h1 className="text-lg font-semibold text-slate-900">Match </h1>
         </div>
       </header>
 
