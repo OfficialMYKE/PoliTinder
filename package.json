@@ -1,0 +1,10 @@
+{
+  "name": "politinder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PoliTinder - Plataforma de networking académico",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
+    "stripe": "^22.3.0"
+  }
+}

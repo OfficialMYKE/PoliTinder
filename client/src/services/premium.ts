@@ -1,6 +1,6 @@
 import { supabase } from "./supabase"
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+const API_URL = import.meta.env.VITE_API_URL || ""
 
 export interface PremiumPlan {
   id: string
@@ -70,7 +70,7 @@ export async function createCheckoutSession(
   userId: string,
   planId: string
 ): Promise<string> {
-  const response = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
+  const response = await fetch(`${API_URL}/api/stripe/checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, planId }),
@@ -92,7 +92,7 @@ export async function createCheckoutSession(
 export async function verifyCheckoutSession(
   sessionId: string
 ): Promise<{ paid: boolean; planId?: string; amount?: number }> {
-  const response = await fetch(`${API_URL}/api/stripe/verify-session/${sessionId}`)
+  const response = await fetch(`${API_URL}/api/stripe/verify?sessionId=${sessionId}`)
 
   if (!response.ok) {
     throw new Error("Error al verificar la sesión de pago")
