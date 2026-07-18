@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useNavigate, Navigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Camera, Image as ImageIcon, Loader2, X, ArrowLeft, MessageSquare, UserPlus, Check } from "lucide-react"
+import { Camera, Image as ImageIcon, Loader2, X, ArrowLeft, MessageSquare, UserPlus, Check, Crown } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { getProfile } from "../services/profile"
 import { getUserPosts, createPost } from "../services/posts"
@@ -245,9 +245,17 @@ export default function Profile() {
 
           <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider truncate">
-                {nickname}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider truncate">
+                  {nickname}
+                </h1>
+                {profile?.is_premium && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-semibold text-yellow-700 dark:text-yellow-400">
+                    <Crown className="h-3 w-3" />
+                    {profile.premium_plan === "premium_plus" ? "Premium+" : "Premium"}
+                  </span>
+                )}
+              </div>
               {profile && !isOwnProfile && profile.id && (
                 <div className="mt-1">
                   <UserStatus userId={profile.id} lastSeenAt={profile.last_seen_at} />

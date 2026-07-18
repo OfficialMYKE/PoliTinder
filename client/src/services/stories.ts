@@ -1,7 +1,6 @@
 import { supabase, resolveTags } from "./supabase"
 import { getOrCreateConversation, sendMessage } from "./messages"
 import type { Story, StoryWithProfile, StoryReplyWithProfile } from "../types/story"
-import type { TaggedUser } from "../types/post"
 
 export async function createStory(
   userId: string,
@@ -44,17 +43,6 @@ export async function createStory(
   }
 
   return data as Story
-}
-
-export async function getStoryTags(storyId: string): Promise<TaggedUser[]> {
-  try {
-    const { data, error } = await supabase
-      .rpc("get_story_tags", { story_id_param: storyId })
-    if (error) return []
-    return (data ?? []) as TaggedUser[]
-  } catch {
-    return []
-  }
 }
 
 export async function getUserStories(userId: string): Promise<Story[]> {
@@ -154,15 +142,6 @@ export async function hasUserLikedStory(userId: string, storyId: string): Promis
   return !!data
 }
 
-export async function getStoryLikeCount(storyId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from("story_likes")
-    .select("*", { count: "exact", head: true })
-    .eq("story_id", storyId)
-  if (error) return 0
-  return count ?? 0
-}
-
 // ── Story Replies ──
 
 export async function replyToStory(
@@ -190,20 +169,6 @@ export async function replyToStory(
   }
 
   return true
-}
-
-export async function getStoryReplies(storyId: string): Promise<StoryReplyWithProfile[]> {
-  const { data, error } = await supabase
-    .from("story_replies_with_profiles")
-    .select("*")
-    .eq("story_id", storyId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching story replies:", error)
-    return []
-  }
-  return (data ?? []) as StoryReplyWithProfile[]
 }
 
 // ── User Mutes ──

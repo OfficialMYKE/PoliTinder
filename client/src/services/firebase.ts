@@ -24,4 +24,3 @@ if (!import.meta.env.DEV) {
 }
 
 export const auth = getAuth(app);
-export const firebaseApiKey = import.meta.env.VITE_FIREBASE_API_KEY as string;

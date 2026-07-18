@@ -41,6 +41,9 @@ export async function getProfile(userId: string): Promise<ProfileData | null> {
     study_styles: data.study_styles ?? [],
     interests: data.interests ?? [],
     last_seen_at: data.last_seen_at ?? null,
+    is_premium: data.is_premium ?? false,
+    premium_plan: data.premium_plan ?? null,
+    premium_since: data.premium_since ?? null,
     created_at: data.created_at,
     updated_at: data.updated_at,
   }
@@ -151,6 +154,9 @@ export function mapOnboardingToProfile(
     bio: formData.bio,
     study_styles: formData.studyStyles,
     interests: formData.interests,
+    is_premium: false,
+    premium_plan: null,
+    premium_since: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }

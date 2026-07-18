@@ -14,6 +14,9 @@ export interface ProfileData {
   study_styles: string[]
   interests: string[]
   last_seen_at: string | null
+  is_premium: boolean
+  premium_plan: string | null
+  premium_since: string | null
   created_at: string
   updated_at: string
 }

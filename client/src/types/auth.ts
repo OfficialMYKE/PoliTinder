@@ -25,11 +25,6 @@ export interface IAuthUser {
   createdAt: Date;
 }
 
-export interface IAuthResponse {
-  user: IAuthUser;
-  token: string;
-}
-
 export interface IAuthError {
   code: string;
   message: string;

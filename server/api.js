@@ -4,18 +4,28 @@ const express = require("express");
 const cors = require("cors");
 
 const stripeRoutes = require("./routes/stripe");
+const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
-app.use(cors());
+// CORS — permitir cliente
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
+}));
+
+// Webhook stripe — DEBE ir ANTES de express.json()
+app.use("/api/stripe", webhookRoutes);
+
+// JSON parser para el resto
 app.use(express.json());
 
-// Ruta de Stripe
+// Rutas de Stripe
 app.use("/api/stripe", stripeRoutes);
 
-// Verificar que el servidor funciona
+// Health check
 app.get("/", (req, res) => {
-    res.send("API de Stripe funcionando correctamente");
+    res.send("API de PoliTinder funcionando correctamente");
 });
 
 const PORT = process.env.API_PORT || 3000;

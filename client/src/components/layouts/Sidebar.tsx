@@ -23,6 +23,7 @@ import { getFriendRequestCount } from "../../services/friends";
 import { getConversations } from "../../services/messages";
 import type { ConversationWithLastMessage } from "../../types/message";
 import { hasUnreadMessages } from "../../services/friends";
+import type { ProfileData } from "../../types/profile";
 
 const PERFIL_SUB_ITEMS = ["Cambiar contrasena", "Configuracion y privacidad"];
 
@@ -66,6 +67,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   const user = authState.user;
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [perfilOpen, setPerfilOpen] = useState(true);
   const [matchesOpen, setMatchesOpen] = useState(true);
   const [gruposOpen, setGruposOpen] = useState(true);
@@ -87,7 +89,10 @@ export function Sidebar({ onClose }: SidebarProps) {
     load();
     getProfile(user.id)
       .then((p) => {
-        if (p?.avatar_url) setAvatarUrl(p.avatar_url);
+        if (p) {
+          setProfileData(p);
+          if (p.avatar_url) setAvatarUrl(p.avatar_url);
+        }
       })
       .catch(() => {});
   }, [user?.id]);
@@ -119,9 +124,14 @@ export function Sidebar({ onClose }: SidebarProps) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100 uppercase truncate leading-tight">
-            {fullName}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100 uppercase truncate leading-tight">
+              {fullName}
+            </p>
+            {profileData?.is_premium && (
+              <Crown className="h-3.5 w-3.5 shrink-0 text-yellow-500" />
+            )}
+          </div>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400 truncate">
             {email}
           </p>

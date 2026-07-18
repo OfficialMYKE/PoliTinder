@@ -11,17 +11,3 @@ export interface IFormFieldProps {
   error?: string;
   disabled?: boolean;
 }
-
-export interface IFormConfig {
-  fields: IFormFieldProps[];
-  onSubmit: (data: Record<string, any>) => Promise<void>;
-  submitLabel?: string;
-  isLoading?: boolean;
-}
-
-export interface IAuthFormProps {
-  title: string;
-  description: string;
-  imageSrc: string;
-  imageAlt?: string;
-}

@@ -18,12 +18,6 @@ export interface StoryWithProfile extends Story {
   }
 }
 
-export interface StoryLike {
-  user_id: string
-  story_id: string
-  created_at: string
-}
-
 export interface StoryReply {
   id: string
   story_id: string
@@ -35,10 +29,4 @@ export interface StoryReply {
 export interface StoryReplyWithProfile extends StoryReply {
   author_nickname: string
   author_avatar: string | null
-}
-
-export interface UserMute {
-  user_id: string
-  muted_user_id: string
-  created_at: string
 }

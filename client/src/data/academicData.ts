@@ -4,7 +4,7 @@ export interface CareerOption {
   semesters: number
 }
 
-export interface FacultyOption {
+interface FacultyOption {
   value: string
   label: string
   careers: CareerOption[]

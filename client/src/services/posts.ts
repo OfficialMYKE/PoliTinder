@@ -1,5 +1,5 @@
 import { supabase, resolveTags } from "./supabase"
-import type { Post, PostCreateData, PostComment, PostWithProfile, TaggedUser } from "../types/post"
+import type { Post, PostCreateData, PostComment, PostWithProfile } from "../types/post"
 
 export async function createPost(post: PostCreateData): Promise<Post> {
   const baseData: Record<string, unknown> = {
@@ -39,17 +39,6 @@ export async function createPost(post: PostCreateData): Promise<Post> {
   }
 
   return data as Post
-}
-
-export async function getPostTags(postId: string): Promise<TaggedUser[]> {
-  try {
-    const { data, error } = await supabase
-      .rpc("get_post_tags", { post_id_param: postId })
-    if (error) return []
-    return (data as TaggedUser[]) ?? []
-  } catch {
-    return []
-  }
 }
 
 export async function getUserPosts(userId: string): Promise<PostWithProfile[]> {
