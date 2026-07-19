@@ -15,7 +15,7 @@ const PLAN_NAMES = {
 };
 
 // Crear sesión de checkout
-router.post("/create-checkout-session", async (req, res) => {
+router.post("/checkout", async (req, res) => {
     try {
         const { userId, planId } = req.body;
 
@@ -63,9 +63,9 @@ router.post("/create-checkout-session", async (req, res) => {
 });
 
 // Verificar estado de una sesión de checkout
-router.get("/verify-session/:sessionId", async (req, res) => {
+router.get("/verify", async (req, res) => {
     try {
-        const { sessionId } = req.params;
+        const sessionId = req.query.sessionId;
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
