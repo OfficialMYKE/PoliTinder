@@ -100,4 +100,35 @@ router.get("/verify-session/:sessionId", async (req, res) => {
     }
 });
 
+// Cancelar suscripción premium
+router.post("/cancel", async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: "userId requerido" });
+        }
+
+        const { error } = await supabaseAdmin
+            .from("profiles")
+            .update({
+                is_premium: false,
+                premium_plan: null,
+                premium_since: null,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", userId);
+
+        if (error) {
+            console.error("Error cancelando premium:", error);
+            return res.status(500).json({ error: "Error al cancelar premium" });
+        }
+
+        res.json({ success: true, message: "Premium cancelado correctamente" });
+    } catch (error) {
+        console.error("Error en cancel:", error);
+        res.status(500).json({ error: "Error al cancelar premium" });
+    }
+});
+
 module.exports = router;
