@@ -34,6 +34,7 @@ import {
 } from "../services/match"
 import { blockUser, getBlockedUsers, unblockUser, type BlockedUser } from "../services/blocked"
 import { sendFriendRequest, rejectFriendRequest } from "../services/friends"
+import { FocusRail, type FocusRailItem } from "../components/ui/focus-rail"
 import { STUDY_STYLE_LABELS, LOOKING_FOR_LABELS } from "../data/labels"
 import type { ProfileData } from "../types/profile"
 
