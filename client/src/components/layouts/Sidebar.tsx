@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import {
   House,
   User,
@@ -8,509 +8,448 @@ import {
   MessageSquare,
   Crown,
   LogOut,
-  ChevronUp,
-  ChevronDown,
   Shield,
   BarChart3,
   Flag,
   Settings,
   Archive,
   UserPlus,
-} from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { getProfile } from "../../services/profile";
-import { getFriendRequestCount } from "../../services/friends";
-import { getConversations } from "../../services/messages";
-import type { ConversationWithLastMessage } from "../../types/message";
-import { hasUnreadMessages } from "../../services/friends";
-import type { ProfileData } from "../../types/profile";
-
-const PERFIL_SUB_ITEMS = ["Cambiar contrasena", "Configuracion y privacidad"];
-
-const MATCHES_SUB_ITEMS = [
-  "Nuevos matches",
-  "Solicitudes enviadas",
-  "Perfiles bloqueados",
-];
-
-const GRUPOS_SUB_ITEMS = [
-  "Mis grupos actuales",
-  "Explorar grupos",
-  "Invitaciones pendientes",
-];
-
-const MENSAJES_SUB_ITEMS = [
-  "Chats recientes",
-  "Archivados",
-  "Solicitudes de mensaje",
-];
-
-const SUB_ITEM_CLASS =
-  "flex w-full items-center px-4 py-2 pl-12 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-[#106ebe]";
+  ChevronDown,
+} from "lucide-react"
+import { useAuth } from "../../contexts/AuthContext"
+import { getProfile } from "../../services/profile"
+import { getFriendRequestCount } from "../../services/friends"
+import { getConversations } from "../../services/messages"
+import type { ConversationWithLastMessage } from "../../types/message"
+import { hasUnreadMessages } from "../../services/friends"
+import type { ProfileData } from "../../types/profile"
+import logoUrl from "../../assets/logo.png"
+import { cn } from "../../lib/utils"
 
 function getInitials(first: string, last: string): string {
   return (
     `${(first?.charAt(0) ?? "").toUpperCase()}${(last?.charAt(0) ?? "").toUpperCase()}` ||
     "?"
-  );
+  )
 }
 
 interface SidebarProps {
-  /** Se llama al navegar para cerrar la sidebar en móvil */
-  onClose?: () => void
+  collapsed?: boolean
 }
 
-export function Sidebar({ onClose }: SidebarProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { state: authState, logout } = useAuth();
-  const user = authState.user;
+export function Sidebar({ collapsed = false }: SidebarProps) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { state: authState, logout } = useAuth()
+  const user = authState.user
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [perfilOpen, setPerfilOpen] = useState(true);
-  const [matchesOpen, setMatchesOpen] = useState(true);
-  const [gruposOpen, setGruposOpen] = useState(true);
-  const [mensajesOpen, setMensajesOpen] = useState(true);
-  const [pendingRequests, setPendingRequests] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [pendingRequests, setPendingRequests] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [showMatchesSub, setShowMatchesSub] = useState(false)
+  const [showMessagesSub, setShowMessagesSub] = useState(false)
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) return
     async function load() {
-      const count = await getFriendRequestCount(user.id);
-      setPendingRequests(count);
-      const convs = await getConversations(user.id);
+      const count = await getFriendRequestCount(user.id)
+      setPendingRequests(count)
+      const convs = await getConversations(user.id)
       const unread = convs.filter((c: ConversationWithLastMessage) =>
         hasUnreadMessages(c, user.id),
-      ).length;
-      setUnreadCount(unread);
+      ).length
+      setUnreadCount(unread)
     }
-    load();
+    load()
     getProfile(user.id)
       .then((p) => {
         if (p) {
-          setProfileData(p);
-          if (p.avatar_url) setAvatarUrl(p.avatar_url);
+          if (p.avatar_url) setAvatarUrl(p.avatar_url)
         }
       })
-      .catch(() => {});
-  }, [user?.id]);
+      .catch(() => {})
+  }, [user?.id])
 
-  const firstName = user?.firstName ?? "";
-  const lastName = user?.lastName ?? "";
-  const email = user?.email ?? "";
-  const fullName = `${firstName} ${lastName}`.trim();
-  const initials = getInitials(firstName, lastName);
+  const firstName = user?.firstName ?? ""
+  const lastName = user?.lastName ?? ""
+  const fullName = `${firstName} ${lastName}`.trim()
+  const initials = getInitials(firstName, lastName)
 
   function nav(path: string) {
     navigate(path)
-    onClose?.()
   }
 
-  return (
-    <aside className="flex h-full w-60 flex-col bg-[#faf9f8] dark:bg-zinc-950">
-      {/* User profile section */}
-      <div className="flex items-start gap-3 px-4 pt-6 pb-6">
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0b6bcb] text-sm font-bold text-white select-none">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={fullName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            initials
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100 uppercase truncate leading-tight">
-              {fullName}
-            </p>
-            {profileData?.is_premium && (
-              <Crown className="h-3.5 w-3.5 shrink-0 text-yellow-500" />
-            )}
-          </div>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400 truncate">
-            {email}
-          </p>
-        </div>
-      </div>
+  function isActive(path: string, exact = false) {
+    return exact ? location.pathname === path : location.pathname.startsWith(path)
+  }
 
-      {/* Navigation */}
-      <nav
-        className="flex-1 overflow-y-auto space-y-1 [&::-webkit-scrollbar]:hidden"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {/* Inicio */}
+  const matchesActive = isActive("/matches")
+  const messagesActive = isActive("/messages")
+
+  return (
+    <div className="flex h-full flex-col bg-white dark:bg-zinc-950 border-r border-slate-200 dark:border-zinc-800">
+      {/* Logo — always left-aligned, consistent position */}
+      <div className={cn("pt-4 pb-3", collapsed ? "px-3 flex justify-center" : "px-5")}>
         <button
           type="button"
           onClick={() => nav("/feed")}
-          className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-            location.pathname === "/feed"
-              ? "font-semibold text-slate-900 dark:text-zinc-100"
-              : "font-normal text-slate-700 dark:text-zinc-300"
-          }`}
+          className="group relative flex items-center justify-center overflow-hidden"
         >
-          {location.pathname === "/feed" && (
-            <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
-          )}
-          <House
-            className={`h-[18px] w-[18px] ${
-              location.pathname === "/feed"
-                ? "text-[#106ebe]"
-                : "text-slate-500 dark:text-zinc-400"
-            }`}
-          />
-          Inicio  
+          <img src={logoUrl} alt="PoliTinder" className={cn("object-cover", collapsed ? "h-11 w-11 rounded-xl" : "h-8")} />
+          {collapsed && <Tooltip>PoliTinder</Tooltip>}
         </button>
+      </div>
 
-        {/* Mi Perfil — active */}
-        <div>
+      {/* User profile — only in expanded mode */}
+      {!collapsed && (
+        <div className="px-4 pb-4">
           <button
             type="button"
-            onClick={() => {
-              setPerfilOpen(!perfilOpen);
-              nav(`/profile/${user?.id}`);
-            }}
-            className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-              location.pathname.startsWith("/profile")
-                ? "font-semibold text-slate-900 dark:text-zinc-100"
-                : "font-normal text-slate-700 dark:text-zinc-300"
-            }`}
+            onClick={() => nav(`/profile/${user?.id}`)}
+            className="flex items-center gap-3 w-full text-left transition-colors hover:bg-slate-50 dark:hover:bg-zinc-900 rounded-xl p-2"
           >
-            {location.pathname.startsWith("/profile") && (
-              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
-            )}
-            <User
-              className={`h-[18px] w-[18px] ${
-                location.pathname.startsWith("/profile")
-                  ? "text-[#106ebe]"
-                  : "text-slate-500 dark:text-zinc-400"
-              }`}
-            />
-            <span className="flex-1 text-left">Mi Perfil</span>
-            {perfilOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            )}
-          </button>
-
-          {perfilOpen && (
-            <div className="pb-1">
-              {PERFIL_SUB_ITEMS.map((item) => (
-                <button key={item} type="button" className={SUB_ITEM_CLASS}>
-                  {item}
-                </button>
-              ))}
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#487CFF]">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                  {initials}
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-400" />
             </div>
-          )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100 truncate">
+                {fullName}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 truncate">
+                Ver mi perfil
+              </p>
+            </div>
+          </button>
         </div>
+      )}
+
+      {/* Main navigation — same structure for both modes */}
+      <nav className="flex-1 overflow-y-auto px-3 py-1 space-y-0.5 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+        {/* Inicio */}
+        <NavItem
+          icon={House}
+          label="Inicio"
+          active={isActive("/feed", true)}
+          onClick={() => nav("/feed")}
+          collapsed={collapsed}
+        />
+
+        {/* Mi Perfil */}
+        <NavItem
+          icon={User}
+          label="Mi Perfil"
+          active={isActive("/profile")}
+          onClick={() => nav(`/profile/${user?.id}`)}
+          collapsed={collapsed}
+        />
+
         {/* Mis Matches */}
-        <div>
-          <button
-            type="button"
-            onClick={() => {
-              setMatchesOpen(!matchesOpen)
-              nav("/matches")
-            }}
-            className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-              location.pathname === "/matches" || location.pathname.startsWith("/matches")
-                ? "font-semibold text-slate-900 dark:text-zinc-100"
-                : "font-normal text-slate-700 dark:text-zinc-300"
-            }`}
-          >
-            {location.pathname === "/matches" || location.pathname.startsWith("/matches") && (
-              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
-            )}
-
-            <Heart
-              className={`h-[18px] w-[18px] ${
-                location.pathname === "/matches" || location.pathname.startsWith("/matches")
-                  ? "text-[#106ebe]"
-                  : "text-slate-500 dark:text-zinc-400"
-              }`}
-            />
-
-            <span className="flex-1 text-left">Mis Matches</span>
-
-            {matchesOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            )}
-          </button>
-
-          {matchesOpen && (
-            <div className="pb-1">
-              {MATCHES_SUB_ITEMS.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={SUB_ITEM_CLASS}
-                  onClick={() => {
-                    if (item === "Nuevos matches") {
-                      nav("/matches")
-                    } else if (item === "Solicitudes enviadas") {
-                      nav("/matches/sent-requests")
-                    } else if (item === "Perfiles bloqueados") {
-                      nav("/matches/blocked")
-                    }
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Grupos de estudio */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setGruposOpen(!gruposOpen)}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-normal text-slate-700 dark:text-zinc-300 transition-colors hover:text-[#106ebe]"
-          >
-            <Users className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-            <span className="flex-1 text-left">Grupos de estudio</span>
-            {gruposOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            )}
-          </button>
-
-          {gruposOpen && (
-            <div className="pb-1">
-              {GRUPOS_SUB_ITEMS.map((item) => (
-                <button key={item} type="button" className={SUB_ITEM_CLASS}>
-                  {item}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Mensajes */}
-        <div>
-          <button
-            type="button"
-            onClick={() => {
-              setMensajesOpen(!mensajesOpen);
-              nav("/messages");
-            }}
-            className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-              location.pathname === "/messages"
-                ? "font-semibold text-slate-900 dark:text-zinc-100"
-                : "font-normal text-slate-700 dark:text-zinc-300"
-            }`}
-          >
-            {location.pathname === "/messages" && (
-              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
-            )}
-            <MessageSquare
-              className={`h-[18px] w-[18px] ${
-                location.pathname === "/messages"
-                  ? "text-[#106ebe]"
-                  : "text-slate-500 dark:text-zinc-400"
-              }`}
-            />
-            <span className="flex-1 text-left">Mensajes</span>
-            {mensajesOpen ? (
-              <ChevronUp className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            ) : (
-              <ChevronDown className="h-[14px] w-[14px] text-slate-400 dark:text-zinc-500" />
-            )}
-          </button>
-
-          {mensajesOpen && (
-            <div className="pb-1">
-              <button
-                type="button"
-                onClick={() => nav("/messages?tab=recientes")}
-                className={SUB_ITEM_CLASS + " relative"}
-              >
-                <span className="flex items-center gap-2">
-                  Chats recientes
-                  {unreadCount > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-[#487CFF] shrink-0" />
-                  )}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => nav("/messages?tab=archivados")}
-                className={SUB_ITEM_CLASS}
-              >
-                <span className="flex items-center gap-2">
-                  <Archive className="w-3.5 h-3.5" />
-                  Archivados
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => nav("/messages?tab=solicitudes")}
-                className={SUB_ITEM_CLASS + " relative"}
-              >
-                <span className="flex items-center gap-2">
-                  <UserPlus className="w-3.5 h-3.5" />
-                  Solicitudes de mensaje
-                  {pendingRequests > 0 && (
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#487CFF] text-[10px] font-bold text-white shrink-0">
-                      {pendingRequests}
-                    </span>
-                  )}
-                </span>
-              </button>
-            </div>
-          )}
-        </div>
-        {/* Premium */}
-        <div>
-        <button
-          type="button"
-          onClick={() => nav("/premium")}
-          className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-            location.pathname === "/premium"
-              ? "font-semibold text-slate-900 dark:text-zinc-100"
-              : "font-normal text-slate-700 dark:text-zinc-300"
-          }`}
-        >
-          {location.pathname === "/premium" && (
-            <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
-          )}
-
-          <Crown
-            className={`h-[18px] w-[18px] ${
-              location.pathname === "/premium"
-                ? "text-yellow-500"
-                : "text-slate-500 dark:text-zinc-400"
-            }`}
+        {collapsed ? (
+          <NavItem
+            icon={Heart}
+            label="Mis Matches"
+            active={matchesActive}
+            onClick={() => nav("/matches")}
+            collapsed={collapsed}
           />
-
-          Premium
-        </button>
-        </div>
-
-        {/* Panel de Administración — solo visible para admin */}
-        {authState.user?.role === "admin" && (
-          <div className="border-t border-slate-200 dark:border-zinc-800 pt-2">
-            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Administración
-            </p>
-            <button
-              type="button"
-              onClick={() => nav("/admin/dashboard")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/admin/dashboard")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <BarChart3 className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Dashboard
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/admin/users")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/admin/users")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <Users className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Usuarios
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/admin/reports")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/admin/reports")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <Flag className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Reportes
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/admin/settings")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/admin/settings")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <Settings className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Configuración
-            </button>
+        ) : (
+          <div>
+            <NavItem
+              icon={Heart}
+              label="Mis Matches"
+              active={matchesActive}
+              onClick={() => {
+                setShowMatchesSub(!showMatchesSub)
+                if (!matchesActive) nav("/matches")
+              }}
+              collapsed={collapsed}
+              chevron
+              chevronOpen={showMatchesSub}
+            />
+            {showMatchesSub && (
+              <div className="ml-4 mt-0.5 space-y-0.5">
+                <SubItem label="Nuevos matches" active={location.pathname === "/matches" && !location.search} onClick={() => nav("/matches")} />
+                <SubItem label="Solicitudes enviadas" active={location.pathname === "/matches/sent-requests"} onClick={() => nav("/matches/sent-requests")} />
+                <SubItem label="Perfiles bloqueados" active={location.pathname === "/matches/blocked"} onClick={() => nav("/matches/blocked")} />
+              </div>
+            )}
           </div>
         )}
 
-        {/* Panel de Moderador — visible para moderator y admin */}
-        {(authState.user?.role === "moderator" ||
-          authState.user?.role === "admin") && (
-          <div className="border-t border-slate-200 dark:border-zinc-800 pt-2">
-            <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Moderación
-            </p>
-            <button
-              type="button"
-              onClick={() => nav("/moderator/dashboard")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/moderator/dashboard")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <Shield className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Dashboard
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/moderator/reports")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/moderator/reports")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <Flag className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Reportes
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/moderator/suspended")}
-              className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-                location.pathname.startsWith("/moderator/suspended")
-                  ? "font-semibold text-slate-900 dark:text-zinc-100"
-                  : "font-normal text-slate-700 dark:text-zinc-300"
-              }`}
-            >
-              <User className="h-[18px] w-[18px] text-slate-500 dark:text-zinc-400" />
-              Suspendidas
-            </button>
+        {/* Grupos */}
+        <NavItem
+          icon={Users}
+          label="Grupos"
+          active={isActive("/groups")}
+          onClick={() => nav("/groups")}
+          collapsed={collapsed}
+        />
+
+        {/* Mensajes */}
+        {collapsed ? (
+          <NavItem
+            icon={MessageSquare}
+            label="Mensajes"
+            active={messagesActive}
+            onClick={() => nav("/messages")}
+            collapsed={collapsed}
+            badge={unreadCount}
+          />
+        ) : (
+          <div>
+            <NavItem
+              icon={MessageSquare}
+              label="Mensajes"
+              active={messagesActive}
+              onClick={() => {
+                setShowMessagesSub(!showMessagesSub)
+                if (!messagesActive) nav("/messages")
+              }}
+              collapsed={collapsed}
+              badge={unreadCount}
+              chevron
+              chevronOpen={showMessagesSub}
+            />
+            {showMessagesSub && (
+              <div className="ml-4 mt-0.5 space-y-0.5">
+                <SubItem label="Chats recientes" active={location.pathname === "/messages" && (!location.search || location.search.includes("tab=recientes"))} onClick={() => nav("/messages?tab=recientes")} badge={unreadCount} />
+                <SubItem label="Archivados" icon={Archive} active={location.search.includes("tab=archivados")} onClick={() => nav("/messages?tab=archivados")} />
+                <SubItem label="Solicitudes de mensaje" icon={UserPlus} active={location.search.includes("tab=solicitudes")} onClick={() => nav("/messages?tab=solicitudes")} badge={pendingRequests} />
+              </div>
+            )}
           </div>
+        )}
+
+        <div className="my-2 border-t border-slate-100 dark:border-zinc-800" />
+
+        {/* Premium */}
+        <NavItem
+          icon={Crown}
+          label="Premium"
+          active={isActive("/premium", true)}
+          onClick={() => nav("/premium")}
+          collapsed={collapsed}
+          iconColor="text-yellow-500"
+        />
+
+        {/* Admin */}
+        {authState.user?.role === "admin" && (
+          <>
+            <div className="my-2 border-t border-slate-100 dark:border-zinc-800" />
+            {!collapsed && (
+              <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                Administración
+              </p>
+            )}
+            <NavItem icon={BarChart3} label="Dashboard" active={isActive("/admin/dashboard")} onClick={() => nav("/admin/dashboard")} collapsed={collapsed} />
+            <NavItem icon={Flag} label="Reportes" active={isActive("/admin/reports")} onClick={() => nav("/admin/reports")} collapsed={collapsed} />
+            {!collapsed && (
+              <>
+                <NavItem icon={Users} label="Usuarios" active={isActive("/admin/users")} onClick={() => nav("/admin/users")} collapsed={collapsed} />
+                <NavItem icon={Settings} label="Configuración" active={isActive("/admin/settings")} onClick={() => nav("/admin/settings")} collapsed={collapsed} />
+              </>
+            )}
+          </>
+        )}
+
+        {/* Moderator */}
+        {(authState.user?.role === "moderator" || authState.user?.role === "admin") && (
+          <>
+            <div className="my-2 border-t border-slate-100 dark:border-zinc-800" />
+            {!collapsed && (
+              <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                Moderación
+              </p>
+            )}
+            <NavItem icon={Shield} label="Dashboard" active={isActive("/moderator/dashboard")} onClick={() => nav("/moderator/dashboard")} collapsed={collapsed} />
+            {!collapsed && (
+              <NavItem icon={Flag} label="Reportes" active={isActive("/moderator/reports")} onClick={() => nav("/moderator/reports")} collapsed={collapsed} />
+            )}
+          </>
         )}
       </nav>
 
-      {/* Cerrar sesion */}
-      <button
-        type="button"
-        onClick={() => {
-          logout();
-          nav("/login");
-        }}
-        className="flex w-full items-center gap-3 border-t border-slate-200 dark:border-zinc-800 px-4 py-3 text-sm font-normal text-slate-500 dark:text-zinc-400 transition-colors hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-      >
-        <LogOut className="h-[18px] w-[18px]" />
-        Cerrar sesión
-      </button>
-    </aside>
-  );
+      {/* Bottom section — avatar (collapsed) or logout (both) */}
+      <div className={cn("pb-4", collapsed ? "px-3 flex flex-col items-center gap-1" : "px-3")}>
+        {/* Avatar — only in collapsed mode */}
+        {collapsed && (
+          <button
+            type="button"
+            onClick={() => nav(`/profile/${user?.id}`)}
+            className="group relative flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden"
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-[#487CFF] text-xs font-bold text-white">
+                {initials}
+              </div>
+            )}
+            <Tooltip>Mi Perfil</Tooltip>
+          </button>
+        )}
+
+        {/* Logout */}
+        {collapsed ? (
+          <div className="group relative">
+            <button
+              type="button"
+              onClick={() => { logout(); nav("/login") }}
+              className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 dark:text-zinc-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+            <Tooltip>Cerrar sesión</Tooltip>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { logout(); nav("/login") }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-zinc-400 transition-all duration-150 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            <span>Cerrar sesión</span>
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Tooltip ──
+
+function Tooltip({ children }: { children: string }) {
+  return (
+    <span className="pointer-events-none absolute left-full ml-3 rounded-lg bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 whitespace-nowrap z-50">
+      {children}
+    </span>
+  )
+}
+
+// ── NavItem — unified for both modes ──
+
+function NavItem({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  badge,
+  iconColor,
+  chevron,
+  chevronOpen,
+  collapsed,
+}: {
+  icon: typeof House
+  label: string
+  active: boolean
+  onClick: () => void
+  badge?: number
+  iconColor?: string
+  chevron?: boolean
+  chevronOpen?: boolean
+  collapsed: boolean
+}) {
+  if (collapsed) {
+    return (
+      <div className="group relative">
+        <button
+          type="button"
+          onClick={onClick}
+          className={cn(
+            "relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors",
+            active
+              ? "bg-[#487CFF]/10 text-[#487CFF]"
+              : "text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-300",
+          )}
+        >
+          <Icon
+            className={cn("h-5 w-5", active ? "text-[#487CFF]" : iconColor ?? "")}
+            strokeWidth={active ? 2.5 : 2}
+          />
+          {badge !== undefined && badge > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#487CFF] px-1 text-[9px] font-bold text-white">
+              {badge > 99 ? "99+" : badge}
+            </span>
+          )}
+        </button>
+        <Tooltip>{label}</Tooltip>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+        active
+          ? "bg-[#487CFF]/10 text-[#487CFF]"
+          : "text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800",
+      )}
+    >
+      <Icon
+        className={cn("h-5 w-5 shrink-0", active ? "text-[#487CFF]" : iconColor ?? "")}
+        strokeWidth={active ? 2.5 : 2}
+      />
+      <span className="flex-1 text-left">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#487CFF] px-1.5 text-[10px] font-bold text-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
+      {chevron && (
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-slate-400 dark:text-zinc-500 transition-transform duration-200",
+            chevronOpen && "rotate-180",
+          )}
+        />
+      )}
+    </button>
+  )
+}
+
+// ── SubItem — expanded only ──
+
+function SubItem({
+  label,
+  active,
+  onClick,
+  badge,
+  icon: Icon,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+  badge?: number
+  icon?: typeof Archive
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+        active
+          ? "bg-[#487CFF]/10 text-[#487CFF] font-medium"
+          : "text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800",
+      )}
+    >
+      {Icon && <Icon className="h-4 w-4 shrink-0" />}
+      <span className="flex-1 text-left">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#487CFF] px-1.5 text-[10px] font-bold text-white">
+          {badge}
+        </span>
+      )}
+    </button>
+  )
 }

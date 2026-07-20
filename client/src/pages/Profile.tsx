@@ -195,75 +195,62 @@ export default function Profile() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pt-6">
-      {/* Header */}
+    <div className="mx-auto max-w-6xl px-6 pt-4 pb-8">
+      {/* Header — wider than container */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mb-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm"
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className="relative mb-6 -mx-6 overflow-hidden rounded-none border-y border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sm:mx-auto sm:max-w-7xl sm:rounded-2xl sm:border"
       >
-        <div className="relative h-48 sm:h-56 md:h-64">
+        {/* Banner — shorter */}
+        <div className="relative h-32 sm:h-40">
           {profile?.banner_url ? (
-            <img
-              src={profile.banner_url}
-              alt=""
-              className="h-full w-full object-cover"
-            />
+            <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />
           ) : (
             <DefaultBanner />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/30 to-transparent dark:from-zinc-950 dark:via-zinc-950/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent dark:from-zinc-950 dark:via-zinc-950/20" />
         </div>
 
-        <div className="relative -mt-16 flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-end sm:gap-6">
-          <div className="relative h-28 w-28 overflow-hidden rounded-full ring-4 ring-white dark:ring-zinc-950 shadow-md">
+        <div className="relative -mt-12 flex flex-col gap-3 px-5 pb-5 sm:flex-row sm:items-end sm:gap-5">
+          {/* Avatar */}
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full ring-4 ring-white dark:ring-zinc-950 shadow-md">
             {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={nickname}
-                className="h-full w-full object-cover"
-              />
+              <img src={profile.avatar_url} alt={nickname} className="h-full w-full object-cover" />
             ) : (
-              <DefaultAvatar name={nickname} className="h-full w-full text-3xl" />
+              <DefaultAvatar name={nickname} className="h-full w-full text-2xl" />
             )}
           </div>
 
-          <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider truncate">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg font-bold text-slate-900 dark:text-zinc-100 truncate">
                   {nickname}
                 </h1>
                 {profile?.is_premium && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-semibold text-yellow-700 dark:text-yellow-400">
-                    <Crown className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[10px] font-semibold text-yellow-700 dark:text-yellow-400">
+                    <Crown className="h-2.5 w-2.5" />
                     {profile.premium_plan === "premium_plus" ? "Premium+" : "Premium"}
                   </span>
                 )}
                 {!isOwnProfile && friendshipStatus === "accepted" && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
-                    <UserCheck className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:text-green-400">
+                    <UserCheck className="h-2.5 w-2.5" />
                     Amigos
                   </span>
                 )}
               </div>
+              {profile && (
+                <p className="text-xs text-slate-500 dark:text-zinc-400 truncate">
+                  {resolveCareerLabel(profile.career)}
+                </p>
+              )}
               {profile && !isOwnProfile && profile.id && (
-                <div className="mt-1">
+                <div className="mt-0.5">
                   <UserStatus userId={profile.id} lastSeenAt={profile.last_seen_at} />
                 </div>
-              )}
-              {profile && (
-                <>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-400 truncate">
-                    PREGRADO - {resolveCareerLabel(profile.career).toUpperCase()}
-                  </p>
-                  {isOwnProfile && email && (
-                    <p className="mt-0.5 text-xs text-[#487CFF] truncate">
-                      {email}
-                    </p>
-                  )}
-                </>
               )}
             </div>
 
@@ -277,9 +264,9 @@ export default function Profile() {
                       await getOrCreateConversation(user.id, profileUserId)
                       navigate("/messages")
                     }}
-                    className="h-9 gap-1.5 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                    className="h-8 gap-1.5 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-3 w-3" />
                     Mensaje
                   </Button>
                   {friendshipStatus === "none" && (
@@ -290,16 +277,16 @@ export default function Profile() {
                         await sendFriendRequest(user.id, profileUserId)
                         setFriendshipStatus("pending_sent")
                       }}
-                      className="h-9 gap-1.5 rounded-full bg-[#487CFF] text-white px-4 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-[#487CFF]/90"
+                      className="h-8 gap-1.5 rounded-full bg-[#487CFF] text-white px-3 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-[#487CFF]/90"
                     >
-                      <UserPlus className="h-3.5 w-3.5" />
+                      <UserPlus className="h-3 w-3" />
                       Conectar
                     </Button>
                   )}
                   {friendshipStatus === "pending_sent" && (
-                    <span className="flex items-center gap-1.5 h-9 px-4 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-full">
-                      <Check className="h-3.5 w-3.5" />
-                      Solicitud enviada
+                    <span className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+                      <Check className="h-3 w-3" />
+                      Enviada
                     </span>
                   )}
                   {friendshipStatus === "pending_received" && (
@@ -319,55 +306,44 @@ export default function Profile() {
                           setFriendshipStatus("accepted")
                         }
                       }}
-                      className="h-9 gap-1.5 rounded-full bg-green-500 text-white px-4 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-green-600"
+                      className="h-8 gap-1.5 rounded-full bg-green-500 text-white px-3 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-green-600"
                     >
-                      <UserCheck className="h-3.5 w-3.5" />
-                      Aceptar solicitud
+                      <UserCheck className="h-3 w-3" />
+                      Aceptar
                     </Button>
                   )}
-                  <Button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="h-9 gap-1.5 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
-                  >
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                    Volver
-                  </Button>
                 </>
               )}
               {isOwnProfile && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setEditing(true)}
-                    className="h-9 gap-1.5 rounded-full border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
-                  >
-                    Editar perfil
-                  </Button>
-                </>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditing(true)}
+                  className="h-8 gap-1.5 rounded-full border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 text-xs font-medium text-slate-600 dark:text-zinc-300 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                >
+                  Editar perfil
+                </Button>
               )}
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Section: ADN Academico */}
-      <p className="mb-4 text-base font-medium text-slate-800 dark:text-zinc-200">ADN Academico</p>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[40%_60%]">
-        {/* Left column */}
-        <div className="flex flex-col gap-6">
+      {/* Content: 2 columns */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[38%_62%]">
+        {/* Left column — info cards */}
+        <div className="flex flex-col gap-4">
+          {/* Bio */}
           {profile?.bio && (
             <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.15 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
             >
-              <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-zinc-100">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
                 Sobre mi
               </h3>
-              <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed line-clamp-3">
+              <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
                 {profile.bio}
               </p>
             </motion.div>
@@ -375,13 +351,16 @@ export default function Profile() {
 
           {friends.length > 0 && (
             <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.15 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
-                Amigos ({friends.length})
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                  Amigos
+                </h3>
+                <span className="text-xs text-slate-400 dark:text-zinc-500">{friends.length}</span>
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 {friends.slice(0, 6).map((friend) => {
                   const friendId = friend.sender_id === profileUserId ? friend.receiver_id : friend.sender_id
@@ -393,18 +372,14 @@ export default function Profile() {
                       onClick={() => navigate(`/profile/${friendId}`)}
                       className="flex flex-col items-center gap-1.5 group"
                     >
-                      <div className="h-16 w-16 overflow-hidden rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 group-hover:ring-[#487CFF]/50 transition-all">
+                      <div className="h-14 w-14 overflow-hidden rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 group-hover:ring-[#487CFF]/50 transition-all">
                         {friend.sender_avatar ? (
-                          <img
-                            src={friend.sender_avatar}
-                            alt={friendName}
-                            className="h-full w-full object-cover"
-                          />
+                          <img src={friend.sender_avatar} alt={friendName} className="h-full w-full object-cover" />
                         ) : (
-                          <DefaultAvatar name={friendName} className="h-full w-full text-lg" />
+                          <DefaultAvatar name={friendName} className="h-full w-full text-sm" />
                         )}
                       </div>
-                      <span className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate max-w-full group-hover:text-[#487CFF] transition-colors">
+                      <span className="text-[11px] font-medium text-slate-700 dark:text-zinc-300 truncate max-w-full group-hover:text-[#487CFF] transition-colors">
                         {friendName}
                       </span>
                     </button>
@@ -412,8 +387,8 @@ export default function Profile() {
                 })}
               </div>
               {friends.length > 6 && (
-                <p className="mt-3 text-center text-xs text-[#487CFF] font-medium">
-                  +{friends.length - 6} mas
+                <p className="mt-3 text-center text-xs text-[#487CFF] font-medium cursor-pointer hover:underline">
+                  Ver todos ({friends.length})
                 </p>
               )}
             </motion.div>
@@ -421,18 +396,18 @@ export default function Profile() {
 
                     {profile?.study_styles && profile.study_styles.length > 0 && (
             <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.15 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
+              <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
                 Preferencias de Estudio
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {profile.study_styles.map((style) => (
                   <span
                     key={style}
-                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
+                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-zinc-300"
                   >
                     {STUDY_STYLE_LABELS[style] ?? style}
                   </span>
@@ -443,18 +418,18 @@ export default function Profile() {
 
           {profile?.interests && profile.interests.length > 0 && (
             <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.15 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
+              <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
                 Intereses
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {profile.interests.map((interest) => (
                   <span
                     key={interest}
-                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
+                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-zinc-300"
                   >
                     {interest}
                   </span>
@@ -465,18 +440,18 @@ export default function Profile() {
 
           {profile?.looking_for && profile.looking_for.length > 0 && (
             <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.15 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
             >
-              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
+              <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
                 Buscando
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {profile.looking_for.map((item) => (
                   <span
                     key={item}
-                    className="inline-flex rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-300"
+                    className="inline-flex rounded-full bg-[#487CFF]/10 px-2.5 py-1 text-[11px] font-medium text-[#487CFF]"
                   >
                     {LOOKING_FOR_LABELS[item] ?? item}
                   </span>
@@ -486,10 +461,9 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Right column */}
-        <div className="flex flex-col gap-6">
-          <p className="text-base font-medium text-slate-800 dark:text-zinc-200 -mb-2">Publicaciones</p>
-
+        {/* Right column — posts */}
+        <div className="flex flex-col gap-4">
+          {/* Post creation */}
           {isOwnProfile && (
           <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
             <div className="flex gap-3">

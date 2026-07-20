@@ -9,6 +9,9 @@ import Profile, { ProfileRedirect } from "./pages/Profile"
 import Matches from "./pages/Matches"
 import SentRequests from "./pages/SentRequests"
 import BlockedProfiles from "./pages/BlockedProfiles"
+import GroupsList from "./pages/GroupsList"
+import GroupDetail from "./pages/GroupDetail"
+import CreateGroup from "./pages/CreateGroup"
 import Messages from "./pages/Messages"
 import Terms from "./pages/Terms"
 import Privacy from "./pages/Privacy"
@@ -145,6 +148,36 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <BlockedProfiles />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <GroupsList />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/create"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CreateGroup />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <GroupDetail />
                   </AppLayout>
                 </ProtectedRoute>
               }

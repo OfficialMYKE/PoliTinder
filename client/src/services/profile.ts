@@ -88,10 +88,22 @@ export async function getSuggestedUsers(
   excludeUserId: string,
   limit = 5,
 ): Promise<ProfileData[]> {
+  const { data: friends } = await supabase
+    .from("friend_requests")
+    .select("sender_id, receiver_id")
+    .eq("status", "accepted")
+    .or(`sender_id.eq.${excludeUserId},receiver_id.eq.${excludeUserId}`)
+
+  const friendIds = (friends ?? []).map((r: any) =>
+    r.sender_id === excludeUserId ? r.receiver_id : r.sender_id
+  )
+
+  const idsToExclude = [excludeUserId, ...friendIds]
+
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .neq("id", excludeUserId)
+    .not("id", "in", `(${idsToExclude.join(",")})`)
     .limit(limit)
 
   if (error) {
