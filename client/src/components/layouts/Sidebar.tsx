@@ -217,18 +217,18 @@ export function Sidebar({ onClose }: SidebarProps) {
               nav("/matches")
             }}
             className={`relative flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:text-[#106ebe] ${
-              location.pathname === "/matches"
+              location.pathname === "/matches" || location.pathname.startsWith("/matches")
                 ? "font-semibold text-slate-900 dark:text-zinc-100"
                 : "font-normal text-slate-700 dark:text-zinc-300"
             }`}
           >
-            {location.pathname === "/matches" && (
+            {location.pathname === "/matches" || location.pathname.startsWith("/matches") && (
               <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 bg-[#106ebe]" />
             )}
 
             <Heart
               className={`h-[18px] w-[18px] ${
-                location.pathname === "/matches"
+                location.pathname === "/matches" || location.pathname.startsWith("/matches")
                   ? "text-[#106ebe]"
                   : "text-slate-500 dark:text-zinc-400"
               }`}
@@ -253,6 +253,10 @@ export function Sidebar({ onClose }: SidebarProps) {
                   onClick={() => {
                     if (item === "Nuevos matches") {
                       nav("/matches")
+                    } else if (item === "Solicitudes enviadas") {
+                      nav("/matches/sent-requests")
+                    } else if (item === "Perfiles bloqueados") {
+                      nav("/matches/blocked")
                     }
                   }}
                 >

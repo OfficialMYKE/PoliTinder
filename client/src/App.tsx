@@ -7,6 +7,8 @@ import Welcome from "./pages/Welcome"
 import Feed from "./pages/Feed"
 import Profile, { ProfileRedirect } from "./pages/Profile"
 import Matches from "./pages/Matches"
+import SentRequests from "./pages/SentRequests"
+import BlockedProfiles from "./pages/BlockedProfiles"
 import Messages from "./pages/Messages"
 import Terms from "./pages/Terms"
 import Privacy from "./pages/Privacy"
@@ -123,6 +125,26 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Matches />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matches/sent-requests"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <SentRequests />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matches/blocked"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <BlockedProfiles />
                   </AppLayout>
                 </ProtectedRoute>
               }

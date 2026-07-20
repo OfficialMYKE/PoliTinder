@@ -11,48 +11,84 @@ export interface FriendRequest {
 }
 
 export async function getIncomingRequests(userId: string): Promise<FriendRequest[]> {
-  const { data, error } = await supabase.rpc("get_incoming_requests", {
-    receiver_id: userId,
+  const { data, error } = await supabase
+    .from("friend_requests")
+    .select("id, sender_id, receiver_id, status, created_at")
+    .eq("receiver_id", userId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+
+  if (error || !data || data.length === 0) return []
+
+  const senderIds = data.map((r: any) => r.sender_id)
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, nickname, avatar_url")
+    .in("id", senderIds)
+
+  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+
+  return data.map((req: any) => {
+    const profile = profileMap.get(req.sender_id)
+    return {
+      ...req,
+      sender_nickname: profile?.nickname ?? null,
+      sender_avatar: profile?.avatar_url ?? null,
+    }
   })
-  if (error || !data) return []
-  const raw = Array.isArray(data) ? data : []
-  return raw as FriendRequest[]
 }
 
 export async function getFriendshipStatus(
   userId: string,
   otherUserId: string,
 ): Promise<"none" | "pending_sent" | "pending_received" | "accepted"> {
-  const { data, error } = await supabase.rpc("get_friendship_status", {
-    user_id: userId,
-    other_user_id: otherUserId,
-  })
+  const { data, error } = await supabase
+    .from("friend_requests")
+    .select("sender_id, status")
+    .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
+    .neq("status", "blocked")
+    .limit(1)
+    .maybeSingle()
+
   if (error || !data) return "none"
-  return data as "none" | "pending_sent" | "pending_received" | "accepted"
+  if (data.status === "accepted") return "accepted"
+  if (data.sender_id === userId) return "pending_sent"
+  return "pending_received"
 }
 
 export async function sendFriendRequest(senderId: string, receiverId: string): Promise<boolean> {
   const existing = await getFriendshipStatus(senderId, receiverId)
   if (existing !== "none") return false
-  const { data, error } = await supabase.rpc("insert_friend_request", {
-    sender_id: senderId,
-    receiver_id: receiverId,
-  })
-  return !error && data === true
+
+  const { error } = await supabase
+    .from("friend_requests")
+    .insert({
+      sender_id: senderId,
+      receiver_id: receiverId,
+      status: "pending",
+    })
+
+  return !error
 }
 
 export async function acceptFriendRequest(requestId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc("accept_friend_request", {
-    request_id: requestId,
-  })
-  return !error && data === true
+  const { error } = await supabase
+    .from("friend_requests")
+    .update({ status: "accepted", updated_at: new Date().toISOString() })
+    .eq("id", requestId)
+    .eq("status", "pending")
+
+  return !error
 }
 
 export async function rejectFriendRequest(requestId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc("reject_friend_request", {
-    request_id: requestId,
-  })
-  return !error && data === true
+  const { error } = await supabase
+    .from("friend_requests")
+    .update({ status: "blocked", updated_at: new Date().toISOString() })
+    .eq("id", requestId)
+    .eq("status", "pending")
+
+  return !error
 }
 
 export async function getArchivedConversationIds(userId: string): Promise<string[]> {
@@ -60,7 +96,7 @@ export async function getArchivedConversationIds(userId: string): Promise<string
     .from("archived_conversations")
     .select("conversation_id")
     .eq("user_id", userId)
-  return (data ?? []).map((r) => r.conversation_id)
+  return (data ?? []).map((r: any) => r.conversation_id)
 }
 
 export async function archiveConversation(conversationId: string, userId: string): Promise<boolean> {
@@ -81,11 +117,59 @@ export async function unarchiveConversation(conversationId: string, userId: stri
 }
 
 export async function getFriendRequestCount(userId: string): Promise<number> {
-  const { data, error } = await supabase.rpc("get_friend_request_count", {
-    receiver_id: userId,
+  const { count, error } = await supabase
+    .from("friend_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("receiver_id", userId)
+    .eq("status", "pending")
+
+  if (error) return 0
+  return count ?? 0
+}
+
+export async function getFriendsList(userId: string): Promise<FriendRequest[]> {
+  const { data, error } = await supabase
+    .from("friend_requests")
+    .select("id, sender_id, receiver_id, status, created_at")
+    .eq("status", "accepted")
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order("created_at", { ascending: false })
+
+  if (error || !data || data.length === 0) return []
+
+  const friendIds = data.map((r: any) =>
+    r.sender_id === userId ? r.receiver_id : r.sender_id
+  )
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, nickname, avatar_url")
+    .in("id", friendIds)
+
+  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+
+  return data.map((req: any) => {
+    const friendId = req.sender_id === userId ? req.receiver_id : req.sender_id
+    const profile = profileMap.get(friendId)
+    return {
+      ...req,
+      sender_nickname: profile?.nickname ?? null,
+      sender_avatar: profile?.avatar_url ?? null,
+    }
   })
-  if (error || data === null || data === undefined) return 0
-  return data as number
+}
+
+export async function getMutualFriends(userId: string, otherUserId: string): Promise<FriendRequest[]> {
+  const [myFriends, theirFriends] = await Promise.all([
+    getFriendsList(userId),
+    getFriendsList(otherUserId),
+  ])
+  const myFriendIds = new Set(myFriends.map((f) =>
+    f.sender_id === userId ? f.receiver_id : f.sender_id
+  ))
+  return theirFriends.filter((f) => {
+    const fid = f.sender_id === otherUserId ? f.receiver_id : f.sender_id
+    return myFriendIds.has(fid)
+  })
 }
 
 // ── Read tracking ──

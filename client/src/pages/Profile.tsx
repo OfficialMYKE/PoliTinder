@@ -1,14 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useNavigate, Navigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Camera, Image as ImageIcon, Loader2, X, ArrowLeft, MessageSquare, UserPlus, Check, Crown } from "lucide-react"
+import { Camera, Image as ImageIcon, Loader2, X, ArrowLeft, MessageSquare, UserPlus, Check, Crown, UserCheck } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { getProfile } from "../services/profile"
 import { getUserPosts, createPost } from "../services/posts"
-import { uploadPostImage } from "../services/supabase"
+import { uploadPostImage, supabase } from "../services/supabase"
 import { getOrCreateConversation } from "../services/messages"
 import { Button } from "../components/ui/button"
-import { getFriendshipStatus, sendFriendRequest } from "../services/friends"
+import { getFriendshipStatus, sendFriendRequest, acceptFriendRequest, getFriendsList } from "../services/friends"
 import { EditProfile } from "../components/profile/EditProfile"
 import { PostCard } from "../components/post/PostCard"
 import { UserStatus } from "../components/chat/UserStatus"
@@ -99,6 +99,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [friendshipStatus, setFriendshipStatus] = useState<"none" | "pending_sent" | "pending_received" | "accepted">("none")
+  const [friends, setFriends] = useState<any[]>([])
 
   const [postContent, setPostContent] = useState("")
   const [postImage, setPostImage] = useState<File | null>(null)
@@ -141,6 +142,11 @@ export default function Profile() {
     if (!user?.id || !profileUserId || isOwnProfile) return
     getFriendshipStatus(user.id, profileUserId).then(setFriendshipStatus)
   }, [user?.id, profileUserId, isOwnProfile])
+
+  useEffect(() => {
+    if (!profileUserId) return
+    getFriendsList(profileUserId).then(setFriends)
+  }, [profileUserId])
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -255,6 +261,12 @@ export default function Profile() {
                     {profile.premium_plan === "premium_plus" ? "Premium+" : "Premium"}
                   </span>
                 )}
+                {!isOwnProfile && friendshipStatus === "accepted" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
+                    <UserCheck className="h-3 w-3" />
+                    Amigos
+                  </span>
+                )}
               </div>
               {profile && !isOwnProfile && profile.id && (
                 <div className="mt-1">
@@ -310,6 +322,29 @@ export default function Profile() {
                       Solicitud enviada
                     </span>
                   )}
+                  {friendshipStatus === "pending_received" && (
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        if (!user?.id || !profileUserId) return
+                        const { data } = await supabase
+                          .from("friend_requests")
+                          .select("id")
+                          .eq("sender_id", profileUserId)
+                          .eq("receiver_id", user.id)
+                          .eq("status", "pending")
+                          .maybeSingle()
+                        if (data) {
+                          await acceptFriendRequest(data.id)
+                          setFriendshipStatus("accepted")
+                        }
+                      }}
+                      className="h-9 gap-1.5 rounded-full bg-green-500 text-white px-4 text-xs font-medium shadow-sm transition-all duration-200 hover:bg-green-600"
+                    >
+                      <UserCheck className="h-3.5 w-3.5" />
+                      Aceptar solicitud
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     onClick={() => navigate(-1)}
@@ -355,6 +390,52 @@ export default function Profile() {
               <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed line-clamp-3">
                 {profile.bio}
               </p>
+            </motion.div>
+          )}
+
+          {friends.length > 0 && (
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm"
+            >
+              <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                Amigos ({friends.length})
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                {friends.slice(0, 6).map((friend) => {
+                  const friendId = friend.sender_id === profileUserId ? friend.receiver_id : friend.sender_id
+                  const friendName = friend.sender_nickname ?? "Usuario"
+                  return (
+                    <button
+                      key={friend.id}
+                      type="button"
+                      onClick={() => navigate(`/profile/${friendId}`)}
+                      className="flex flex-col items-center gap-1.5 group"
+                    >
+                      <div className="h-16 w-16 overflow-hidden rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 group-hover:ring-[#487CFF]/50 transition-all">
+                        {friend.sender_avatar ? (
+                          <img
+                            src={friend.sender_avatar}
+                            alt={friendName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <DefaultAvatar name={friendName} className="h-full w-full text-lg" />
+                        )}
+                      </div>
+                      <span className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate max-w-full group-hover:text-[#487CFF] transition-colors">
+                        {friendName}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              {friends.length > 6 && (
+                <p className="mt-3 text-center text-xs text-[#487CFF] font-medium">
+                  +{friends.length - 6} mas
+                </p>
+              )}
             </motion.div>
           )}
 

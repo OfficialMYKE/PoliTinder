@@ -12,3 +12,10 @@ export interface Match {
   user2_id: string
   created_at: string
 }
+
+export interface DailySwipeInfo {
+  count: number
+  limit: number | null
+  remaining: number | null
+  isPremium: boolean
+}
