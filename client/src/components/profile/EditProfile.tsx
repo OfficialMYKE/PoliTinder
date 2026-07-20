@@ -22,9 +22,9 @@ interface EditProfileProps {
 }
 
 const inputBase =
-  "h-12 w-full rounded-full border border-slate-300 bg-white px-4 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] placeholder:text-slate-400"
+  "h-12 w-full rounded-full border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-sm text-slate-900 dark:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] placeholder:text-slate-400 dark:placeholder:text-zinc-500"
 
-const LABEL_CLASS = "text-sm font-medium text-slate-700 mb-2 block"
+const LABEL_CLASS = "text-sm font-medium text-slate-700 dark:text-zinc-300 mb-2 block"
 
 export function EditProfile({ profile, userId, onSave, onClose }: EditProfileProps) {
   const avatarRef = useRef<HTMLInputElement>(null)
@@ -141,14 +141,14 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.97 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl mx-4"
+        className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 shadow-xl mx-4"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Editar perfil</h2>
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-zinc-100">Editar perfil</h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 dark:text-zinc-500 transition-colors hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-600 dark:hover:text-zinc-300"
           >
             <X className="h-4 w-4" />
           </button>
@@ -162,12 +162,12 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
               type="button"
               onClick={() => bannerRef.current?.click()}
               disabled={uploadingBanner}
-              className="relative flex h-32 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-colors hover:border-[#487CFF]/40"
+              className="relative flex h-32 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 transition-colors hover:border-[#487CFF]/40"
             >
               {bannerUrl ? (
                 <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex flex-col items-center gap-1 text-slate-400">
+                <div className="flex flex-col items-center gap-1 text-slate-400 dark:text-zinc-500">
                   <Camera className="h-5 w-5" />
                   <span className="text-xs">Agregar banner</span>
                 </div>
@@ -188,7 +188,7 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
                 type="button"
                 onClick={() => avatarRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 bg-slate-50 transition-colors hover:border-[#487CFF]/40"
+                className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 transition-colors hover:border-[#487CFF]/40"
               >
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -226,9 +226,9 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
               placeholder="Escribe algo sobre ti..."
               maxLength={280}
               rows={3}
-              className="w-full resize-none rounded-2xl border border-slate-300 bg-white p-3.5 pb-8 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] placeholder:text-slate-400"
+              className="w-full resize-none rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3.5 pb-8 text-sm text-slate-900 dark:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#487CFF] focus-visible:border-[#487CFF] placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             />
-            <div className="mt-1 text-right text-xs tabular-nums text-slate-400">
+            <div className="mt-1 text-right text-xs tabular-nums text-slate-400 dark:text-zinc-500">
               {bio.length}/280
             </div>
           </div>
@@ -280,7 +280,7 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
                     className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 ${
                       selected
                         ? "bg-[#487CFF] text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
                     }`}
                   >
                     {opt.label}
@@ -304,7 +304,7 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
                     className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 ${
                       selected
                         ? "bg-[#487CFF] text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
                     }`}
                   >
                     {s.label}
@@ -328,7 +328,7 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
                     className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 ${
                       selected
                         ? "bg-[#487CFF] text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
                     }`}
                   >
                     {i.label}
@@ -339,13 +339,13 @@ export function EditProfile({ profile, userId, onSave, onClose }: EditProfilePro
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-slate-100 dark:border-zinc-800 px-6 py-4">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={saving}
-            className="h-10 rounded-full border-slate-200 px-5 text-sm text-slate-600"
+            className="h-10 rounded-full border-slate-200 dark:border-zinc-700 px-5 text-sm text-slate-600 dark:text-zinc-300"
           >
             Cancelar
           </Button>

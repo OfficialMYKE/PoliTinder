@@ -78,7 +78,7 @@ export default function BlockedProfiles() {
             blocked.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition-all hover:shadow-sm"
+                className="flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition-all hover:shadow-sm"
               >
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
                   {item.blocked_avatar ? (
@@ -114,17 +114,17 @@ export default function BlockedProfiles() {
                   <button
                     type="button"
                     onClick={() => navigate(`/profile/${item.blocked_id}`)}
-                    className="rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 text-slate-500 dark:text-zinc-400 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-700 hover:text-[#487CFF]"
+                    className="h-8 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 text-xs font-medium text-slate-500 dark:text-zinc-400 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-700 hover:text-[#487CFF]"
                     title="Ver perfil"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleUnblock(item.blocked_id)}
                     disabled={unblockingId === item.blocked_id}
-                    className="rounded-lg bg-[#487CFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#3a6ae0] disabled:opacity-50"
+                    className="h-8 rounded-full bg-[#487CFF] px-4 text-xs font-medium text-white transition-colors hover:bg-[#3a6ae0] disabled:opacity-50"
                   >
                     {unblockingId === item.blocked_id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />

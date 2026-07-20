@@ -86,19 +86,19 @@ export function Combobox({
         }}
         disabled={disabled}
         className={cn(
-          "relative flex h-12 w-full items-center rounded-full border bg-white px-4 text-sm transition-colors",
+          "relative flex h-12 w-full items-center rounded-full border bg-white dark:bg-zinc-800 px-4 text-sm transition-colors",
           error
             ? "border-red-500"
             : open
               ? "border-[#487CFF] ring-1 ring-[#487CFF]"
-              : "border-slate-300 hover:border-slate-400",
-          disabled && "cursor-not-allowed opacity-60 bg-slate-50",
+              : "border-slate-300 dark:border-zinc-700 hover:border-slate-400 dark:hover:border-zinc-600",
+          disabled && "cursor-not-allowed opacity-60 bg-slate-50 dark:bg-zinc-900",
         )}
       >
         <span
           className={cn(
             "flex-1 text-left truncate",
-            value ? "text-slate-900" : "text-slate-400",
+            value ? "text-slate-900 dark:text-zinc-100" : "text-slate-400 dark:text-zinc-500",
           )}
         >
           {selectedLabel ?? placeholder}
@@ -109,14 +109,14 @@ export function Combobox({
               role="button"
               tabIndex={-1}
               onClick={handleClear}
-              className="flex items-center justify-center rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600"
+              className="flex items-center justify-center rounded p-0.5 text-slate-400 dark:text-zinc-500 transition-colors hover:text-slate-600 dark:hover:text-zinc-300"
             >
               <X className="h-3.5 w-3.5" />
             </span>
           )}
           <ChevronDown
             className={cn(
-              "h-4 w-4 text-slate-400 transition-transform duration-200",
+              "h-4 w-4 text-slate-400 dark:text-zinc-500 transition-transform duration-200",
               open && "rotate-180",
             )}
           />
@@ -130,11 +130,11 @@ export function Combobox({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+            className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-lg"
           >
             {searchable && (
-              <div className="relative border-b border-slate-100">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <div className="relative border-b border-slate-100 dark:border-zinc-700">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -142,7 +142,7 @@ export function Combobox({
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar..."
                   autoFocus
-                  className="h-11 w-full bg-transparent pl-10 pr-4 text-sm outline-none placeholder:text-slate-400"
+                  className="h-11 w-full bg-transparent pl-10 pr-4 text-sm text-slate-900 dark:text-zinc-100 outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && filtered.length === 1) {
                       handleSelect(filtered[0].value)
@@ -155,7 +155,7 @@ export function Combobox({
 
             <div className="max-h-52 overflow-y-auto py-1">
               {filtered.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-slate-400">
+                <p className="px-4 py-3 text-sm text-slate-400 dark:text-zinc-500">
                   {emptyMessage}
                 </p>
               ) : (
@@ -169,8 +169,8 @@ export function Combobox({
                       className={cn(
                         "flex w-full items-center gap-2 px-4 py-2.5 text-sm transition-colors",
                         isSelected
-                          ? "bg-[#487CFF]/8 text-slate-900 font-medium"
-                          : "text-slate-600 hover:bg-slate-50",
+                          ? "bg-[#487CFF]/8 text-slate-900 dark:text-zinc-100 font-medium"
+                          : "text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700",
                       )}
                     >
                       <span className="flex h-4 w-4 shrink-0 items-center justify-center">

@@ -99,7 +99,7 @@ export default function SentRequests() {
               return (
                 <div
                   key={req.id}
-                  className={`flex items-center gap-4 rounded-xl border ${config.border} ${config.bg} p-4 transition-all`}
+                  className={`flex items-center gap-4 rounded-2xl border ${config.border} ${config.bg} p-4 transition-all`}
                 >
                   <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/80 dark:bg-zinc-800 shadow-sm">
                     {req.receiver_avatar ? (
@@ -141,7 +141,7 @@ export default function SentRequests() {
                     <button
                       type="button"
                       onClick={() => handleCancel(req.id)}
-                      className="shrink-0 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-zinc-300 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-700 hover:text-red-500"
+                      className="shrink-0 h-8 rounded-full border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-medium text-slate-600 dark:text-zinc-300 transition-colors hover:bg-slate-50 dark:hover:bg-zinc-700 hover:text-red-500"
                     >
                       Cancelar
                     </button>
@@ -151,7 +151,7 @@ export default function SentRequests() {
                     <button
                       type="button"
                       onClick={() => navigate(`/profile/${req.receiver_id}`)}
-                      className="shrink-0 rounded-lg bg-[#487CFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#3a6ae0]"
+                      className="shrink-0 h-8 rounded-full bg-[#487CFF] px-4 text-xs font-medium text-white transition-colors hover:bg-[#3a6ae0]"
                     >
                       Ver perfil
                     </button>

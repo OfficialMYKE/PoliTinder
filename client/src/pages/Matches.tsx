@@ -34,21 +34,8 @@ import {
 } from "../services/match"
 import { blockUser, getBlockedUsers, unblockUser, type BlockedUser } from "../services/blocked"
 import { sendFriendRequest, rejectFriendRequest } from "../services/friends"
-import { FocusRail, type FocusRailItem } from "../components/ui/focus-rail"
+import { STUDY_STYLE_LABELS, LOOKING_FOR_LABELS } from "../data/labels"
 import type { ProfileData } from "../types/profile"
-
-const STUDY_STYLE_LABELS: Record<string, string> = {
-  madrugador: "Madrugador",
-  cafe: "Team Cafeteria",
-  grupo: "Grupo de estudio",
-  solo: "Solo/a",
-  online: "Online",
-  nocturno: "Nocturno",
-  biblioteca: "Biblioteca",
-  tutorias: "Tutorias",
-  musica: "Con musica",
-  silencio: "Silencio total",
-}
 
 type MatchTab = "discover" | "sent" | "blocked"
 
@@ -541,7 +528,7 @@ export default function Matches() {
                     </div>
 
                     {currentProfile.bio && (
-                      <p className="text-sm text-slate-600 dark:text-zinc-400 mb-3 leading-relaxed">
+                      <p className="text-sm text-slate-600 dark:text-zinc-400 mb-3 leading-relaxed line-clamp-3">
                         {currentProfile.bio}
                       </p>
                     )}

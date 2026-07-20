@@ -12,6 +12,7 @@ import { getFriendshipStatus, sendFriendRequest, acceptFriendRequest, getFriends
 import { EditProfile } from "../components/profile/EditProfile"
 import { PostCard } from "../components/post/PostCard"
 import { UserStatus } from "../components/chat/UserStatus"
+import { STUDY_STYLE_LABELS, LOOKING_FOR_LABELS } from "../data/labels"
 import { FACULTIES } from "../data/academicData"
 import type { ProfileData } from "../types/profile"
 import type { PostWithProfile } from "../types/post"
@@ -21,27 +22,6 @@ export function ProfileRedirect() {
   const currentUserId = state.user?.id
   if (!currentUserId) return <Navigate to="/login" replace />
   return <Navigate to={`/profile/${currentUserId}`} replace />
-}
-
-const STUDY_STYLE_LABELS: Record<string, string> = {
-  madrugador: "Madrugador",
-  cafe: "Team Cafeteria",
-  grupo: "Grupo de estudio",
-  solo: "Solo/a",
-  online: "Online",
-  nocturno: "Nocturno",
-  biblioteca: "Biblioteca",
-  tutorias: "Tutorias",
-  musica: "Con musica",
-  silencio: "Silencio total",
-}
-
-const LOOKING_FOR_LABELS: Record<string, string> = {
-  study_groups: "Grupos de estudio",
-  projects: "Proyectos academicos",
-  mentorship: "Mentoria",
-  networking: "Networking",
-  friends: "Hacer amigos",
 }
 
 function getInitial(name: string): string {
