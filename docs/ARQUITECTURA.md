@@ -39,8 +39,10 @@ Las páginas son componentes de alto nivel que orquestan la interacción entre l
 | `Onboarding`     | `/onboarding`      | Formulario multi-paso de datos iniciales   |
 | `Welcome`        | `/welcome`         | Tutorial post-onboarding                   |
 | `Feed`           | `/feed`            | Inicio: stories + publicaciones del feed   |
-| `Profile`        | `/profile`         | Perfil del usuario con sus publicaciones   |
-| `Matches`        | `/matches`         | Cards de potenciales matches (Tinder-like) |
+| `Profile`        | `/profile`         | Perfil del usuario con publicaciones y amigos |
+| `Matches`        | `/matches`         | Carousel 3D FocusRail con descubrimiento, solicitudes y bloqueados |
+| `SentRequests`   | `/matches/sent-requests` | Solicitudes de amistad enviadas       |
+| `BlockedProfiles`| `/matches/blocked` | Perfiles bloqueados por el usuario         |
 | `Messages`       | `/messages`        | Bandeja de mensajes + chat en tiempo real  |
 | `Terms`          | `/terms`           | Términos y condiciones legales             |
 | `Privacy`        | `/privacy`         | Política de privacidad                     |
@@ -68,7 +70,9 @@ El contexto de autenticación expone: `login`, `register`, `loginWithMicrosoft`,
 | **posts**  | `services/posts.ts`    | `createPost`, `getUserPosts`, `getFeedPosts`, `likePost`, `unlikePost`, `getPostComments`, `createComment` |
 | **stories**| `services/stories.ts`  | `createStory`, `getUserStories`, `getActiveStories`, `deleteStory`, `likeStory`, `replyToStory`, `muteUser`, `reportStory`, `shareStory` |
 | **messages**| `services/messages.ts` | `getOrCreateConversation`, `sendMessage`, `getConversations`, `getMessages`, `subscribeToMessages`, `subscribeToConversations` |
-| **friends**| `services/friends.ts`  | `getFriendshipStatus`, `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `getIncomingRequests`, `getArchivedConversationIds`, `archiveConversation`, `unarchiveConversation` |
+| **friends**| `services/friends.ts`  | `getFriendshipStatus`, `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `getIncomingRequests`, `getFriendsList`, `getMutualFriends`, `getArchivedConversationIds`, `archiveConversation`, `unarchiveConversation` |
+| **match** | `services/match.ts`    | `getDailySwipeCount`, `getSentRequests`, `swipe`, `checkForMatch`, `getMatches`, `unmatch`                 |
+| **blocked**| `services/blocked.ts` | `blockUser`, `unblockUser`, `isUserBlocked`, `getBlockedUsers`                                             |
 
 #### Almacenamiento (Supabase Storage)
 
@@ -134,6 +138,15 @@ Visor de historias a pantalla completa:
 - **Share** (compartir vía Web Share API)
 - **Mute/Report** desde menú contextual
 - **Delete** (solo historias propias)
+
+#### FocusRail (`components/ui/focus-rail.tsx`)
+
+Componente de carousel 3D para descubrimiento de perfiles:
+
+- Efecto 3D perspective con Main Stage (destacado) y Side Stages (adjacentes)
+- Navegación con flechas, teclado (flechas, Espacio, Enter) y touch/swipe
+- Props: `items`, `onItemChange`, `showControls` (default `true`)
+- Integrado en la página Matches para mostrar perfiles candidatos
 
 ### 5. Esquema de Base de Datos (Supabase PostgreSQL)
 
@@ -272,6 +285,27 @@ JOIN entre `conversations`, `profiles` (ambos participantes) y `messages` (últi
 | `user_id`        | `TEXT`        | FK → profiles(id)                    |
 | `archived_at`    | `TIMESTAMPTZ` | Fecha de archivo                     |
 | (PK compuesta: conversation_id + user_id) |
+
+#### Tabla `blocked_users`
+
+| Columna      | Tipo          | Descripción                          |
+| ------------ | ------------- | ------------------------------------ |
+| `id`         | `UUID`        | PK (auto-generado)                   |
+| `blocker_id` | `TEXT`        | FK → profiles(id)                    |
+| `blocked_id` | `TEXT`        | FK → profiles(id)                    |
+| `created_at` | `TIMESTAMPTZ` | Fecha de bloqueo                     |
+| (UC: `unique_block`) |             | (blocker_id, blocked_id)             |
+
+#### Tabla `user_reactions`
+
+| Columna      | Tipo          | Descripción                          |
+| ------------ | ------------- | ------------------------------------ |
+| `id`         | `UUID`        | PK (auto-generado)                   |
+| `user_id`    | `TEXT`        | FK → profiles(id)                    |
+| `target_id`  | `TEXT`        | FK → profiles(id)                    |
+| `reaction`   | `TEXT`        | 'like', 'dislike'                    |
+| `created_at` | `TIMESTAMPTZ` | Fecha de reacción                    |
+| (UC: `unique_reaction`) |             | (user_id, target_id, DATE(created_at)) |
 
 ## Flujo de Mensajería
 
@@ -519,6 +553,13 @@ npm run lint       # Verificación de código
 | Messages tabs: recientes, archivados, solicitudes                  | Michael Carrillo  | ✅     |
 | VideoCallModal con ZegoCloud UIKit (video y voz)                   | Michael Carrillo  | ✅     |
 | Signaling vía Supabase Realtime Broadcast (llamada entrante)       | Michael Carrillo  | ✅     |
+| Migración 016: blocked_users, daily_swipes                         | Michael Carrillo  | ✅     |
+| Migración 017: disable RLS en tablas restantes                     | Michael Carrillo  | ✅     |
+| FocusRail: componente carousel 3D para descubrimiento              | Michael Carrillo  | ✅     |
+| Matches: refactor con FocusRail, tabs, límites diarios             | Michael Carrillo  | ✅     |
+| SentRequests y BlockedProfiles: páginas standalone                 | Michael Carrillo  | ✅     |
+| Profile: badge "Amigos" y sección de amigos                        | Michael Carrillo  | ✅     |
+| Servicio blocked.ts: blockUser, unblockUser, getBlockedUsers       | Michael Carrillo  | ✅     |
 
 ### Sprint 5: Pulido y Despliegue (Planificado)
 
